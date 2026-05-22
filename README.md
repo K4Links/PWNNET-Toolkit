@@ -32,6 +32,8 @@ npm install
 
 # Start the app
 npm run dev
-```
 
+# Open the app
+o + ENTER
+```
 *Note: This app is made for educational purposes and learning about networking and security.*
