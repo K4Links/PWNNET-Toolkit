@@ -1,0 +1,19 @@
+export type Tab = 'tools' | 'logbook' | 'resources' | 'settings';
+
+export interface ToolDef {
+  id: string;
+  name: string;
+  icon: any; // Lucide icon
+  category: string;
+  actionType: 'terminal' | 'modal' | 'external';
+  requiresInput?: boolean;
+  defaultPort?: string;
+  description?: string;
+}
+
+export interface TerminalOutput {
+  id: string;
+  timestamp: number;
+  type: 'system' | 'input' | 'success' | 'error' | 'info';
+  content: string;
+}

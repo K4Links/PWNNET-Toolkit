@@ -1,0 +1,18 @@
+{
+  "short_name": "PwnNet",
+  "name": "PwnNet Tools",
+  "description": "High-performance, terminal-themed network toolkit for security professionals.",
+  "icons": [
+    {
+      "src": "https://i.postimg.cc/LYMf0p55/image-2ee750fc.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#09090b",
+  "theme_color": "#030712",
+  "display": "standalone",
+  "orientation": "portrait-primary"
+}

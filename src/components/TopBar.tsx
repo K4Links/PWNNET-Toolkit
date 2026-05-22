@@ -1,0 +1,84 @@
+import { useState, useEffect } from 'react';
+import { Cpu, TerminalSquare, Compass, Shield, Activity, Sun, Moon } from 'lucide-react';
+
+interface TopBarProps {
+  title: string;
+  onTerminalToggle?: () => void;
+}
+
+export function TopBar({ title }: TopBarProps) {
+  const [timeStr, setTimeStr] = useState('');
+  const [isLight, setIsLight] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') === 'light';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const updateTime = () => {
+      const d = new Date();
+      const pad = (n: number) => d.toString().padStart(2, '0'); // pad isn't used below because we just string pad below
+      const padNum = (num: number) => num.toString().padStart(2, '0');
+      setTimeStr(`${padNum(d.getUTCHours())}:${padNum(d.getUTCMinutes())}:${padNum(d.getUTCSeconds())} UTC`);
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isLight) {
+      root.classList.add('light');
+      localStorage.setItem('theme', 'light');
+    } else {
+      root.classList.remove('light');
+      localStorage.setItem('theme', 'dark');
+    }
+  }, [isLight]);
+
+  return (
+    <div className="flex justify-between items-center px-4 h-14 bg-[#070707] border-b border-neon-green/30 shrink-0 relative select-none">
+      {/* Visual cyber glow sub-line */}
+      <div className="absolute bottom-[-1px] left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-neon-green/50 to-transparent z-20 pointer-events-none" />
+
+      <div className="text-xs font-mono tracking-widest uppercase flex items-center gap-3 relative z-0">
+        <img 
+          src="https://i.postimg.cc/Y9wL20Xk/image-824616f3.png" 
+          alt="PWN//NET" 
+          className="h-[70px] -mb-4 w-auto object-contain hover:scale-105 transition-all duration-300 opacity-90" 
+          referrerPolicy="no-referrer" 
+        />
+        {title.toLowerCase() !== 'pwnnet tools' && (
+          <span className="px-2 py-0.5 rounded-md bg-neon-green/10 border border-neon-green/35 text-[10px] text-neon-green font-extrabold tracking-widest">
+            {title.toUpperCase()}
+          </span>
+        )}
+      </div>
+
+      <div className="flex items-center space-x-2 text-[10px] font-mono">
+        {/* Dynamic Telemetry Badges */}
+        <div className="hidden sm:flex items-center gap-1.5 text-gray-400 border border-neon-green/25 bg-black/90 px-2 py-1 rounded-xl select-none">
+          <Shield size={10} className="text-neon-green" />
+          <span>SHIELD: <span className="text-[#38bdf8] font-bold">ACTIVE</span></span>
+        </div>
+        
+        {/* GMT Terminal Clock */}
+        <div className="bg-black border border-neon-green/40 px-2.5 py-1 rounded-xl text-neon-green font-bold tracking-wider font-mono text-[10px] selection:bg-neon-green">
+          {timeStr || '00:00:00 UTC'}
+        </div>
+
+        {/* Theme Toggle Button */}
+        <button
+          onClick={() => setIsLight(prev => !prev)}
+          className="bg-black hover:bg-neon-green/10 border border-neon-green/40 hover:border-neon-green px-2.5 py-1 rounded-xl text-neon-green hover:text-white transition-all cursor-pointer active:scale-95 flex items-center gap-1 font-bold text-[9px] tracking-wider"
+          title={isLight ? "Activate Dark Mode" : "Activate Light Mode"}
+        >
+          {isLight ? <Moon size={11} className="stroke-[2.5px] text-teal-400" /> : <Sun size={11} className="stroke-[2.5px] text-[#eab308]" />}
+          <span>{isLight ? 'DARK' : 'LIGHT'}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
