@@ -1,44 +1,36 @@
-# PwnNet Interface
+# PwnNet
 
-> *"Visibility is the first axiom of security. You cannot defend what you cannot see, and you cannot exploit what you do not comprehend."*
+PwnNet is a straightforward networking and diagnostics app designed to make exploring networks and systems easy. It features a suite of 26 different tools for networking, web diagnostics, and security recon, all accessed through a simple and clean interface.
 
-PwnNet is an advanced diagnostics and network reconnaissance console designed to centralize and execute tactical intelligence workflows. Operating within a high-contrast, distraction-free modular interface, it provides operators with the immediate context required to map, analyze, and diagnose complex network topologies. 
+## Core Features
 
-## Core Capabilities
+*   **⚡ Tools Grid:** A collection of 26 tools including Ping Sweeps, Port Scans, SSH connection testing, and Web Crawling.
+*   **🖥️ Command Terminal:** A built-in terminal that shows you exactly what the tools are doing in real-time.
+*   **📡 Logs:** Keeps track of the commands you've run and their outputs so you can review them later.
+*   **📚 Resources:** Includes handy reference guides for things like common ports, the OSI model, and Nmap commands.
 
-*   **⚡ Tactical Tools Grid:** A centralized launchpad for network reconnaissance (Ping Sweeps, Port Scans) and web diagnostics (SSH banner grabbing, HTTP Header extraction, Web Crawling).
-*   **🖥️ Emulated Command Terminal:** A responsive, interactive shell environment that processes operator input, executing tasks with authentic output formatting and asynchronous evaluation.
-*   **📡 Intelligence Logs:** Persistent session logging tracking every initiated command, trace route, and system diagnostic event.
-*   **📚 Operator Resources:** Integrated archives featuring comprehensive technical cheat sheets—from Nmap flags and the OSI Model to the OWASP Top 10 and common port mappings.
+## Mobile App (Android)
 
-## Philosophy
-
-The structural integrity of a network is only truly understood when subjected to stress. PwnNet serves as a lens into that stress—abstracting away the friction of traditional command-line noise while retaining the raw diagnostic clarity of foundational networking tools. It is an exploration of the aesthetics of cybersecurity, merging pure utility with a sharp, kinetic visual identity. 
-
-Security is not a final destination, but a continuous dialogue between architecture and entropy.
-
-## Mobile Deployment (Android)
-
-Deploy the PwnNet console directly to your operational device for field mobility.
+Get the PwnNet app on your phone:
 
 1. **Download** the latest `.apk` installation file from the releases section.
-2. **Install** the package on your Android device. (ensure "Install from Unknown Sources" is enabled in your security settings).
-3. **Launch** the application to initialize the mobile downlink.
+2. **Install** the package on your Android device (ensure "Install from Unknown Sources" is enabled in your security settings).
+3. **Open** the app and start exploring.
 
 [<kbd>⤓ Download PwnNet APK</kbd>](#)
 
 ---
 
-## Local Sequence
+## Running Locally
 
-To initiate the PwnNet local environment:
+If you want to run the code yourself on your computer:
 
 ```bash
-# Install core dependencies
+# Install the needed packages
 npm install
 
-# Boot the command interface on localhost
+# Start the app
 npm run dev
 ```
 
-*Note: This architecture is engineered for diagnostic simulations, threat modeling, and educational environment exploration. Proceed with curiosity.*
+*Note: This app is made for educational purposes and learning about networking and security.*
