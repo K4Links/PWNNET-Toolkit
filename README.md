@@ -14,7 +14,7 @@ Pwn//Net-Toolkit is a straightforward networking and diagnostics app designed to
 
 Get the PwnNet app on your phone:
 
-1. **Download** the latest `.apk` installation file from the releases section.
+1. **Download** the latest `.apk` installation file from the releases section below.
 2. **Install** the package on your Android device (ensure "Install from Unknown Sources" is enabled in your security settings).
 3. **Open** the app and start exploring
 
@@ -40,5 +40,9 @@ npm run dev
 # Open the app
 o + ENTER
 ```
-
+Donations are always welcome and appreciated!
+BTC:
+```
+bc1qqh84tnwrkm2sn2wg8r8tzt7sljee6q0km8a5wt
+```
 *Note: This app is made for educational purposes and learning about networking and security. Enjoy!*
