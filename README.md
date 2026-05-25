@@ -1,6 +1,6 @@
-# PWN//NET-Toolkit
+### PWNNET-Toolkit
 
-Pwn//Net-Toolkit is a straightforward networking and diagnostics app designed to make exploring networks and systems easy. It features a suite of 26 different tools for networking, web diagnostics, and security recon, all accessed through a simple and clean interface.
+PWNNET-Toolkit is a straightforward networking and diagnostics app designed to make exploring networks and systems easy. It features a suite of 26 different tools for networking, web diagnostics, and security recon, all accessed through a simple and clean interface.
 
 [![Screenshot-20260523-024121-Bazaart.jpg](https://i.postimg.cc/DZ7zy34c/Screenshot-20260523-024121-Bazaart.jpg)](https://postimg.cc/rdYTQbJd)
 ## Core Features
@@ -10,9 +10,9 @@ Pwn//Net-Toolkit is a straightforward networking and diagnostics app designed to
 *   **📡 Logs:** Keeps track of the commands you've run and their outputs so you can review them later.
 *   **📚 Resources:** Includes handy reference guides for things like common ports, the OSI model, and Nmap commands.
 
-## Mobile App (Android)
+### Mobile App (Android)
 
-Get the PwnNet app on your phone:
+Get the PWNNET-Toolkit app on your phone:
 
 1. **Download** the latest `.apk` installation file from the releases section below.
 2. **Install** the package on your Android device (ensure "Install from Unknown Sources" is enabled in your security settings).
@@ -20,7 +20,7 @@ Get the PwnNet app on your phone:
 
 ---
 
-## Running Locally
+### Running Locally
 
 If you want to run the code yourself on your computer:
 
@@ -41,7 +41,7 @@ npm run dev
 o + ENTER
 ```
 ---
-**Please 🌟 if you find this project helpful.**
+### Please 🌟 if you find this project helpful.
 
 Donations are always welcome and appreciated! Thanks!
 
