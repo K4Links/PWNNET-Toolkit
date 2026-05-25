@@ -30,7 +30,6 @@ interface ToolsGridProps {
 }
 
 export function ToolsGrid({ onSelectTool }: ToolsGridProps) {
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
   // Categories extraction
@@ -42,41 +41,18 @@ export function ToolsGrid({ onSelectTool }: ToolsGridProps) {
   // Filtered tools
   const filteredTools = useMemo(() => {
     return TOOLS.filter((tool) => {
-      const matchesSearch = tool.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            tool.category.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = selectedCategory === 'All' || tool.category === selectedCategory;
-      return matchesSearch && matchesCategory;
+      return selectedCategory === 'All' || tool.category === selectedCategory;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [selectedCategory]);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-obsidian relative">
       {/* CRT Scanline effect overlay */}
       <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)+50%,rgba(0,0,0,0.25)+50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,6px_100%] z-10 opacity-30"></div>
       
-      {/* Utility Search & Category Bar */}
+      {/* Utility Category Bar */}
       <div className="p-4 bg-[#080808] border-b border-neon-green/20 flex flex-col gap-3 shrink-0">
-        <div className="flex flex-col sm:flex-row gap-2">
-          {/* Search Box */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 group-hover:text-neon-green" />
-            <input
-              type="text"
-              placeholder="SEARCH SECURE TOOLS..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-black border border-neon-green/30 hover:border-neon-green/60 focus:border-neon-green text-neon-green text-xs font-mono uppercase px-10 py-2.5 rounded-xl focus:outline-none focus:ring-0 placeholder:text-gray-700 transition-all tracking-wider font-bold"
-            />
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-neon-green text-[10px] font-mono font-bold"
-              >
-                [ESC]
-              </button>
-            )}
-          </div>
-          
+        <div className="flex flex-col sm:flex-row gap-2 justify-end">
           {/* Status Indicators */}
           <div className="flex items-center gap-3 px-3.5 py-1.5 border border-neon-green/20 bg-black/80 text-[10px] font-mono text-gray-400 rounded-xl sm:self-stretch">
             <div className="flex items-center gap-1.5">
@@ -145,7 +121,13 @@ export function ToolsGrid({ onSelectTool }: ToolsGridProps) {
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-y-7 gap-x-4">
             {filteredTools.map((tool, index) => {
               const Icon = tool.icon;
-              const styles = getCategoryStyles(tool.category);
+              let styles = getCategoryStyles(tool.category);
+              if (tool.id === 'pwnux') {
+                 styles = {
+                   iconContainer: 'bg-gradient-to-br from-[#f87171] via-[#dc2626] to-[#7f1d1d] shadow-[0_10px_20px_-5px_rgba(220,38,38,0.5),inset_0_2px_5px_rgba(255,255,255,0.5),inset_0_-3px_5px_rgba(0,0,0,0.4)] border border-t-[#fca5a5]/50 border-x-[#dc2626]/30 border-b-black/80',
+                   iconColor: 'text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.6)] drop-shadow-[0_0_15px_rgba(248,113,113,0.6)]',
+                 };
+              }
               return (
                 <motion.button
                   key={tool.id}

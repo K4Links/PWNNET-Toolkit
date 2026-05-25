@@ -50,7 +50,7 @@ export function Settings() {
           <img 
             src="https://i.postimg.cc/Y9wL20Xk/PWN-logo.png" 
             alt="PWN//NET Config" 
-            className="h-[150px] w-auto object-contain hover:scale-105 transition-all duration-300" 
+            className="h-[150px] w-auto object-contain hover:scale-105 transition-all duration-300 mix-blend-screen contrast-125" 
             referrerPolicy="no-referrer"
           />
           <h2 className="text-sm font-black text-white tracking-widest mt-3.5 uppercase glow-text">PwnNet Config Centre</h2>

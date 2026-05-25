@@ -1,3 +1,5 @@
+import React from 'react';
+
 export type Tab = 'tools' | 'logbook' | 'resources' | 'settings';
 
 export interface ToolDef {
@@ -15,5 +17,5 @@ export interface TerminalOutput {
   id: string;
   timestamp: number;
   type: 'system' | 'input' | 'success' | 'error' | 'info';
-  content: string;
+  content: React.ReactNode;
 }

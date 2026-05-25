@@ -18,8 +18,7 @@ export function BottomNav({ activeTab, setActiveTab, disabled }: BottomNavProps)
 
   return (
     <div 
-      className="flex justify-around items-center bg-[#070707] border-t border-neon-green/30 px-2 sm:px-6 relative select-none"
-      style={{ height: 'calc(4rem + env(safe-area-inset-bottom))', paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="flex justify-around items-center bg-[#070707] border-t border-neon-green/30 px-2 sm:px-6 relative select-none h-[4.25rem] pb-1"
     >
       {/* Visual top cyber neon horizontal line */}
       <div className="absolute top-[-1px] left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-neon-green/45 to-transparent" />

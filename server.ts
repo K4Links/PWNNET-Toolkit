@@ -45,12 +45,12 @@ const checkPort = (port: number, host: string, timeout = 2000): Promise<boolean>
 
 // 1. Port Scanner
 app.get('/api/net/portscan', async (req, res) => {
-  const { target } = req.query;
+  const { target, ports } = req.query;
   if (!target || typeof target !== 'string') {
     return res.status(400).json({ error: 'Target is required' });
   }
 
-  const commonPorts = [
+  const defaultPorts = [
     { port: 21, service: 'FTP' },
     { port: 22, service: 'SSH' },
     { port: 23, service: 'Telnet' },
@@ -65,9 +65,14 @@ app.get('/api/net/portscan', async (req, res) => {
     { port: 8080, service: 'HTTP-Proxy' }
   ];
 
+  let portsToScan = defaultPorts;
+  if (ports && typeof ports === 'string') {
+    portsToScan = ports.split(',').map(p => ({ port: parseInt(p, 10), service: 'Unknown' })).filter(p => !isNaN(p.port));
+  }
+
   try {
     const results = await Promise.all(
-      commonPorts.map(async (p) => {
+      portsToScan.map(async (p) => {
         const isOpen = await checkPort(p.port, target, 2500);
         return { ...p, isOpen };
       })
@@ -75,6 +80,99 @@ app.get('/api/net/portscan', async (req, res) => {
     res.json({ results });
   } catch (error) {
     res.status(500).json({ error: 'Failed to scan ports' });
+  }
+});
+
+// 1.1 Blacklist
+app.get('/api/net/blacklist', async (req, res) => {
+  const { target } = req.query;
+  if (!target || typeof target !== 'string') {
+    return res.status(400).json({ error: 'Target is required' });
+  }
+  try {
+    const isIp = /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/.test(target);
+    let ip = target;
+    if (!isIp) {
+      const lookRes = await dns.promises.lookup(target);
+      ip = lookRes.address;
+    }
+    const reverseIp = ip.split('.').reverse().join('.');
+    
+    const lists = ['zen.spamhaus.org', 'b.barracudacentral.org', 'bl.spamcop.net'];
+    const results = await Promise.all(lists.map(async (list) => {
+      try {
+        await dns.promises.resolve(`${reverseIp}.${list}`);
+        return { list, clean: false };
+      } catch (e) {
+        return { list, clean: true };
+      }
+    }));
+    res.json({ ip, results });
+  } catch (e) {
+    res.status(500).json({ error: 'DNS resolution failed' });
+  }
+});
+
+// 1.2 Shodan Proxy (Host Search)
+app.get('/api/net/shodan', async (req, res) => {
+  const { target } = req.query;
+  if (!target || typeof target !== 'string') {
+    return res.status(400).json({ error: 'Target is required' });
+  }
+  try {
+    const data = await fetch(`https://api.hackertarget.com/hostsearch/?q=${encodeURIComponent(target)}`);
+    const text = await data.text();
+    res.json({ result: text });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed HT lookup' });
+  }
+});
+
+// 1.3 VirusTotal Proxy (Reverse IP/DNS)
+app.get('/api/net/vt', async (req, res) => {
+  const { target } = req.query;
+  if (!target || typeof target !== 'string') {
+    return res.status(400).json({ error: 'Target is required' });
+  }
+  try {
+    const isIp = /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/.test(target);
+    const api = isIp ? 'reverseiplookup' : 'dnslookup';
+    const data = await fetch(`https://api.hackertarget.com/${api}/?q=${encodeURIComponent(target)}`);
+    const text = await data.text();
+    res.json({ result: text });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed HT lookup' });
+  }
+});
+
+// 1.4 Spider Proxy (Page Links)
+app.get('/api/net/spider', async (req, res) => {
+  const { target } = req.query;
+  if (!target || typeof target !== 'string') {
+    return res.status(400).json({ error: 'Target is required' });
+  }
+  try {
+    const data = await fetch(`https://api.hackertarget.com/pagelinks/?q=${encodeURIComponent(target)}`);
+    const text = await data.text();
+    res.json({ result: text });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed HT lookup' });
+  }
+});
+
+
+// 1.5 HTTP Headers
+app.get('/api/net/http', async (req, res) => {
+  const { target } = req.query;
+  if (!target || typeof target !== 'string') {
+    return res.status(400).json({ error: 'Target is required' });
+  }
+  try {
+    const data = await fetch(`https://api.hackertarget.com/httpheaders/?q=${encodeURIComponent(target)}`);
+    const text = await data.text();
+    res.json({ result: text });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed HT lookup' });
   }
 });
 
@@ -432,6 +530,54 @@ app.get('/api/net/pwned', async (req, res) => {
      }
   } catch (error) {
      res.status(500).json({ error: 'Failed to contact HIBP registry' });
+  }
+});
+
+// 11. Directory Scanner
+app.get('/api/net/dirscan', async (req, res) => {
+  const { target } = req.query;
+  if (!target || typeof target !== 'string') {
+    return res.status(400).json({ error: 'Target is required' });
+  }
+
+  const commonDirs = [
+    'admin', 'login', 'dashboard', 'api', 'assets', 'css', 'js', 'images',
+    'wp-admin', 'wp-content', 'robots.txt', 'sitemap.xml', '.git', '.git/config',
+    '.env', 'backup', 'old', 'test', 'dev', 'logs', 'config'
+  ];
+
+  let baseUrl = target.replace(/\/$/, "");
+  if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+     baseUrl = 'http://' + baseUrl;
+  }
+
+  try {
+     const results = [];
+     for (const dir of commonDirs) {
+       try {
+         const url = `${baseUrl}/${dir}`;
+         const controller = new AbortController();
+         const timeoutId = setTimeout(() => controller.abort(), 2000);
+         
+         const response = await fetch(url, { 
+             method: 'HEAD', 
+             redirect: 'manual',
+             signal: controller.signal
+         });
+         clearTimeout(timeoutId);
+         
+         const status = response.status;
+         // Sometimes 403 or 301 is a hit for directories
+         if (status !== 404 && status !== 0) {
+            results.push({ path: `/${dir}`, status });
+         }
+       } catch (err) {
+         // Network error or timeout, ignore and continue
+       }
+     }
+     res.json({ results });
+  } catch (error) {
+     res.status(500).json({ error: 'Directory scan failed' });
   }
 });
 

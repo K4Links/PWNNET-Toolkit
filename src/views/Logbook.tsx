@@ -15,7 +15,7 @@ export function Logbook() {
     const unsubscribe = logService.subscribe((updatedLogs) => {
       setLogs([...updatedLogs]);
     });
-    return unsubscribe;
+    return () => { unsubscribe(); };
   }, []);
 
   const getStatusColor = (status: LogEntry['status']) => {

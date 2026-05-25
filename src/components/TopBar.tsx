@@ -37,7 +37,7 @@ export function TopBar({ title }: TopBarProps) {
         <img 
           src="https://i.postimg.cc/Y9wL20Xk/PWN-logo.png" 
           alt="PWN//NET" 
-          className="h-[70px] -mb-4 w-auto object-contain hover:scale-105 transition-all duration-300 opacity-90" 
+          className="h-[77px] -mt-1 -mb-4 w-auto object-contain hover:scale-105 transition-all duration-300 opacity-90 relative mix-blend-screen contrast-125" 
           referrerPolicy="no-referrer" 
         />
         {title.toLowerCase() !== 'pwnnet tools' && (

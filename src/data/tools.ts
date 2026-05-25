@@ -55,7 +55,7 @@ import {
 import { ToolDef } from '../types';
 
 export const TOOLS: ToolDef[] = [
-  { id: 'device', name: 'Device Info', icon: MonitorSmartphone, category: 'Recon', actionType: 'modal', description: 'Displays detailed hardware and operating system information about the local device executing the application. Useful for identifying architecture, screen dimensions, user-agent, and local platform capabilities.' },
+  { id: 'pwnux', name: 'Pwnux_CLI', icon: Terminal, category: 'Utils', actionType: 'terminal', requiresInput: true, description: 'A fully emulated standard terminal interface that interprets commands such as nmap, ping, whois, etc. just like a regular shell.' },
   { id: 'shodan', name: 'Shodan', icon: Eye, category: 'Recon', actionType: 'terminal', requiresInput: true, description: 'Queries the Shodan search engine to find specific devices, vulnerabilities, or open ports exposed on the internet.' },
   { id: 'vt', name: 'VirusTotal', icon: ShieldAlert, category: 'Recon', actionType: 'terminal', requiresInput: true, description: 'Analyzes a domain or IP against VirusTotal to detect malware signatures and view crowdsourced reputation verdicts.' },
   { id: 'dorks', name: 'Google Dorks', icon: SearchCode, category: 'Recon', actionType: 'terminal', requiresInput: true, description: 'Utilizes advanced Google search operators (dorks) to uncover exposed files, administrative portals, or misconfigured directories. Enter a target domain to generate context-aware queries.' },
@@ -75,11 +75,13 @@ export const TOOLS: ToolDef[] = [
   { id: 'http', name: 'HTTP Headers', icon: FileJson, category: 'Web', actionType: 'terminal', requiresInput: true, description: 'Fetches raw HTTP response headers. Crucial for identifying security misconfigurations (e.g., missing CORS, HSTS) or fingerprinting the web server software version.' },
   { id: 'spider', name: 'Web Crawler', icon: Dna, category: 'Web', actionType: 'terminal', requiresInput: true, description: 'Simulates a site enumeration process by recursively extracting visible links and pathways on a target domain, indicating potential exposed endpoints.' },
   { id: 'certs', name: 'Certificates', icon: FileBadge, category: 'Web', actionType: 'terminal', requiresInput: true, description: 'Inspects a domain\'s Transport Layer Security (TLS) certificate. Validates the issuer, expiration date, SANs, and encryption algorithms.' },
-  { id: 'bt', name: 'Bluetooth', icon: Bluetooth, category: 'Recon', actionType: 'terminal', description: 'Leverages the Web Bluetooth API to discover nearby broadcasting BLE (Bluetooth Low Energy) devices. Requires explicit user permission and a compatible browser.' },
   { id: 'mac', name: 'MAC Database', icon: Cpu, category: 'Recon', actionType: 'terminal', requiresInput: true, description: 'Resolves the physical MAC address prefix (OUI) into the manufacturer or vendor name. Provide a standard MAC address (e.g., 00:1A:2B:...).' },
   { id: 'mail', name: 'Mail Server', icon: Mail, category: 'Web', actionType: 'terminal', requiresInput: true, description: 'Queries MX (Mail Exchange) and TXT records mapping a domain\'s mail flow. Scans for existing SPF/DMARC policies to assess email spoofing vulnerability.' },
   { id: 'smtp_test', name: 'SMTP Test', icon: Send, category: 'Web', actionType: 'terminal', requiresInput: true, description: 'Probes an MTA (Mail Transfer Agent) on port 25 to check connection latency and grab server banners.' },
-  
+  { id: 'dir_scan', name: 'Directory Scanner', icon: Server, category: 'Web', actionType: 'terminal', requiresInput: true, description: 'Scans target for common hidden directories and configuration files (.git, .env, admin panels) to uncover exposed web paths.' },
+
+  { id: 'device', name: 'Device Info', icon: MonitorSmartphone, category: 'Recon', actionType: 'modal', description: 'Displays detailed hardware and operating system information about the local device executing the application. Useful for identifying architecture, screen dimensions, user-agent, and local platform capabilities.' },
+  { id: 'bt', name: 'Bluetooth', icon: Bluetooth, category: 'Recon', actionType: 'terminal', description: 'Leverages the Web Bluetooth API to discover nearby broadcasting BLE (Bluetooth Low Energy) devices. Requires explicit user permission and a compatible browser.' },
   { id: 'ip_calc', name: 'IP-Calculation', icon: Calculator, category: 'Utils', actionType: 'modal', description: 'Calculates IPv4 subnet boundaries. Input an IP and CIDR mask to compute the network address, broadcast address, and usable host ranges.' },
   { id: 'security', name: 'Security Check', icon: ShieldCheck, category: 'Utils', actionType: 'terminal', description: 'Executes a heuristic evaluation covering client-side security profiles, sandbox restrictions, memory leakage vectors, and browser fingerprinting indicators.' },
   { id: 'speed', name: 'Speed Test', icon: Gauge, category: 'Utils', actionType: 'terminal', description: 'Tests the current bandwidth and connection speed of the browser against global endpoints to estimate latency and packet transfer limits.' },
@@ -89,4 +91,5 @@ export const TOOLS: ToolDef[] = [
   { id: 'otp', name: 'OTP Decoder', icon: Timer, category: 'Utils', actionType: 'modal', description: 'Analyzes Two-Factor Authentication secrets or parameters. Currently a diagnostic utility for checking standard TOTP/HOTP cryptographic lengths.' },
   { id: 'passwords', name: 'Passwords', icon: RectangleEllipsis, category: 'Utils', actionType: 'modal', description: 'Generates cryptographically secure, high-entropy passwords with customizable constraints and evaluates password entropy via brute-force matrices.' },
 ];
+
 

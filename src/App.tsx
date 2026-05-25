@@ -9,11 +9,16 @@ import { Resources } from './views/Resources';
 import { Settings } from './views/Settings';
 import { SplashScreen } from './components/SplashScreen';
 import { AnimatePresence } from 'motion/react';
+import { initKotlinLogger } from './utils/kotlinLogger';
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('tools');
   const [activeTool, setActiveTool] = useState<ToolDef | null>(null);
+
+  useEffect(() => {
+    initKotlinLogger();
+  }, []);
 
   // Handle hardware back button for Tools
   useEffect(() => {
