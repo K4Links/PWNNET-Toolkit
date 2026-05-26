@@ -15,6 +15,40 @@ interface TerminalEmulatorProps {
   onClose: () => void;
 }
 
+const CopyableLink = ({ url, label }: { url: string, label?: string }) => {
+  const [copied, setCopied] = useState(false);
+  
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <span className="inline-flex items-center gap-2 mt-1">
+      <a 
+        href={url} 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        onClick={(e) => e.stopPropagation()} 
+        className="underline hover:text-white break-all text-[#38bdf8]"
+      >
+        {label || url}
+      </a>
+      <button 
+        onClick={handleCopy}
+        title="Copy Link"
+        type="button"
+        className="p-1.5 rounded-md bg-black border border-neon-green/30 hover:border-neon-green hover:bg-neon-green/10 text-neon-green transition-all focus:outline-none"
+      >
+        {copied ? <Check size={12} /> : <Copy size={12} />}
+      </button>
+    </span>
+  );
+};
+
 export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
   const [target, setTarget] = useState('');
   const [isRunning, setIsRunning] = useState(false);
@@ -25,6 +59,9 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
   ]);
   
   const endOfOutputRef = useRef<HTMLDivElement>(null);
+
+  const [history, setHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState<number>(-1);
 
   // --- Utility States ---
   // Subnet Calc
@@ -414,6 +451,11 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
     if (e) e.preventDefault();
     if (!target.trim() && tool?.requiresInput) return;
     
+    if (target.trim()) {
+      setHistory(prev => [...prev.filter(t => t !== target.trim()), target.trim()]);
+      setHistoryIndex(-1);
+    }
+
     setIsRunning(true);
     
     // Check if simple offline tool
@@ -597,6 +639,58 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
       resolvedTarget = cleanHostname(resolvedTarget);
     }
 
+    const isValidIP = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(resolvedTarget);
+    const isValidDomain = /^(?!:\/\/)([a-zA-Z0-9-_]+\.)+[a-zA-Z]{2,}$/.test(resolvedTarget) || resolvedTarget === 'localhost';
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resolvedTarget);
+    const isValidMac = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/i.test(resolvedTarget);
+    
+    const cidrParts = resolvedTarget.split('/');
+    const isCidr = cidrParts.length === 2 && /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(cidrParts[0]) && !isNaN(parseInt(cidrParts[1])) && parseInt(cidrParts[1]) >= 0 && parseInt(cidrParts[1]) <= 32;
+
+    const domainOrIpTools = ['ping', 'nmap', 'whois', 'traceroute', 'mtr', 'shodan', 'host', 'ip_host', 'dns', 'nslookup', 'dig', 'vt', 'blacklist', 'http', 'curl', 'wget', 'spider', 'certs', 'mail', 'dir_scan', 'port_scan', 'smb', 'smbclient'];
+    
+    if (domainOrIpTools.includes(activeToolId)) {
+        if (!isValidIP && !isValidDomain) {
+            addOutput('input', `root@pwnux:~$ ${rawInput}`);
+            addOutput('error', `Invalid input. Please provide a valid IP address or domain name. (e.g., example.com or 8.8.8.8)`);
+            setIsRunning(false);
+            setTarget('');
+            return;
+        }
+    } else if (activeToolId === 'pwned') {
+        if (!isValidEmail) {
+            addOutput('input', `root@pwnux:~$ ${rawInput}`);
+            addOutput('error', `Invalid input. Please provide a valid email address.`);
+            setIsRunning(false);
+            setTarget('');
+            return;
+        }
+    } else if (activeToolId === 'mac') {
+        if (!isValidMac) {
+            addOutput('input', `root@pwnux:~$ ${rawInput}`);
+            addOutput('error', `Invalid input. Please provide a valid MAC address (e.g. 00:11:22:33:44:55).`);
+            setIsRunning(false);
+            setTarget('');
+            return;
+        }
+    } else if (activeToolId === 'net_scan') {
+        if (!isValidIP && !isCidr) {
+            addOutput('input', `root@pwnux:~$ ${rawInput}`);
+            addOutput('error', `Invalid input. Please provide a valid IP address or CIDR notation (e.g. 192.168.1.0/24).`);
+            setIsRunning(false);
+            setTarget('');
+            return;
+        }
+    } else if (activeToolId === 'dorks' && resolvedTarget.trim() !== '' && resolvedTarget !== 'dorks') {
+        if (!isValidDomain) {
+            addOutput('input', `root@pwnux:~$ ${rawInput}`);
+            addOutput('error', `Invalid input. Please provide a valid domain name. (e.g., example.com)`);
+            setIsRunning(false);
+            setTarget('');
+            return;
+        }
+    }
+
     addOutput('input', `root@pwnux:~$ ${rawInput}`);
 
     try {
@@ -613,9 +707,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
           addOutput('success', (
             <span className="flex items-center flex-wrap">
               {'=> Click here to view results on Shodan: '}
-              <a href={url} target="_blank" rel="noopener noreferrer" className="ml-1 underline hover:text-white break-all">
-                {url}
-              </a>
+              <CopyableLink url={url} />
             </span>
           ));
 
@@ -625,9 +717,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
           addOutput('success', (
             <span className="flex items-center flex-wrap">
               {'=> View Crowdsourced Reputation: '}
-              <a href={url} target="_blank" rel="noopener noreferrer" className="ml-1 underline hover:text-white break-all">
-                {url}
-              </a>
+              <CopyableLink url={url} />
             </span>
           ));
 
@@ -640,9 +730,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
           addOutput('success', (
             <span className="flex items-center flex-wrap">
               {'=> Verify manually: '}
-              <a href={url} target="_blank" rel="noopener noreferrer" className="ml-1 underline hover:text-white break-all">
-                {url}
-              </a>
+              <CopyableLink url={url} />
             </span>
           ));
 
@@ -652,9 +740,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
           addOutput('success', (
             <span className="flex items-center flex-wrap">
               {'=> '}
-              <a href={url} target="_blank" rel="noopener noreferrer" className="underline hover:text-white break-all">
-                {url}
-              </a>
+              <CopyableLink url={url} />
             </span>
           ));
 
@@ -669,9 +755,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
                addOutput('success', (
                 <span className="flex items-center flex-wrap">
                   {'=> Run Nmap Manually: '}
-                  <a href={url} target="_blank" rel="noopener noreferrer" className="ml-1 underline hover:text-white break-all">
-                    {url}
-                  </a>
+                  <CopyableLink url={url} />
                 </span>
               ));
             } else {
@@ -692,9 +776,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
                addOutput('success', (
                 <span className="flex items-center flex-wrap">
                   {'=> Run Whois Manually: '}
-                  <a href={url} target="_blank" rel="noopener noreferrer" className="ml-1 underline hover:text-white break-all">
-                    {url}
-                  </a>
+                  <CopyableLink url={url} />
                 </span>
               ));
             } else {
@@ -965,20 +1047,28 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
                 </div>
               </div>
 
-              <div className="flex gap-2 shrink-0 mt-4 justify-end">
+              <div className="flex gap-2 shrink-0 mt-4 justify-end flex-wrap">
                 <button
                   onClick={() => {
                       copyToClipboard(editableDork);
                   }}
-                  className="border border-neon-green/20 hover:border-neon-green text-neon-green bg-black hover:bg-neon-green/10 px-5 py-2.5 rounded-xl text-xs font-mono uppercase cursor-pointer transition-all font-bold active:scale-95"
+                  className="border flex-1 border-neon-green/20 hover:border-neon-green text-neon-green bg-black hover:bg-neon-green/10 px-5 py-2.5 rounded-xl text-xs font-mono uppercase cursor-pointer transition-all font-bold active:scale-95 text-center"
                 >
-                  COPY STRING
+                  COPY DORK
+                </button>
+                <button
+                  onClick={() => {
+                      copyToClipboard(`https://www.google.com/search?q=${encodeURIComponent(editableDork)}`);
+                  }}
+                  className="border flex-[0.5] border-neon-green/20 hover:border-neon-green text-neon-green bg-black hover:bg-neon-green/10 px-5 py-2.5 rounded-xl text-xs font-mono uppercase cursor-pointer transition-all font-bold active:scale-95 text-center"
+                  title="Copy Google URL"
+                >
+                  <Copy className="mx-auto" size={14} />
                 </button>
                 <a 
                   href={`https://www.google.com/search?q=${encodeURIComponent(editableDork)}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="border flex flex-col justify-center border-neon-green bg-neon-green/15 hover:bg-neon-green/35 text-neon-green hover:text-white px-5 py-2.5 rounded-xl text-xs font-mono uppercase tracking-widest text-center transition-all font-bold active:scale-95 shadow-md shadow-neon-green/5 cursor-pointer w-full leading-tight"
+                  target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
+                  className="border flex-1 flex flex-col justify-center border-neon-green bg-neon-green/15 hover:bg-neon-green/35 text-neon-green hover:text-white px-5 py-2.5 rounded-xl text-xs font-mono uppercase tracking-widest text-center transition-all font-bold active:scale-95 shadow-md shadow-neon-green/5 cursor-pointer leading-tight"
                 >
                   LAUNCH SEARCH
                 </a>
@@ -1316,6 +1406,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
             <div 
                className="flex-1 overflow-y-auto p-4 text-[11px] sm:text-xs font-mono leading-relaxed bg-[#030303]" 
                onClick={() => {
+                   if (window.getSelection()?.toString().length) return;
                    const prompt = document.getElementById('pwnux-prompt');
                    if (prompt) prompt.focus();
                }}
@@ -1356,12 +1447,32 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
                      }}
                      className="flex items-end gap-2 text-white font-bold"
                   >
-                     <span className="text-neon-green/80 flex-shrink-0 select-none pb-0.5">root@{tool.id === 'pwnux' ? 'pwnux' : 'termux'}:~$</span>
+                     <span className="text-neon-green/80 flex-shrink-0 select-none pb-0.5">root@pwnux:~$</span>
                      <input
                        id="pwnux-prompt"
                        type="text"
                        value={target}
                        onChange={(e) => setTarget(e.target.value)}
+                       onKeyDown={(e) => {
+                         if (e.key === 'ArrowUp') {
+                           e.preventDefault();
+                           if (history.length > 0) {
+                             const newIndex = historyIndex < history.length - 1 ? historyIndex + 1 : historyIndex;
+                             setHistoryIndex(newIndex);
+                             setTarget(history[history.length - 1 - newIndex]);
+                           }
+                         } else if (e.key === 'ArrowDown') {
+                           e.preventDefault();
+                           if (historyIndex > 0) {
+                             const newIndex = historyIndex - 1;
+                             setHistoryIndex(newIndex);
+                             setTarget(history[history.length - 1 - newIndex]);
+                           } else if (historyIndex === 0) {
+                             setHistoryIndex(-1);
+                             setTarget('');
+                           }
+                         }
+                       }}
                        className="bg-transparent border-none outline-none flex-1 font-mono text-white placeholder:text-gray-700/50"
                        placeholder={
                          tool.id === 'pwnux' ? '' :

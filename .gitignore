@@ -5,3 +5,4 @@ coverage/
 *.log
 .env*
 !.env.example
+FINAL_ANDROID_APP.html
