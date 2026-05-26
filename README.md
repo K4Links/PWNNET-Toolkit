@@ -78,7 +78,6 @@ Click the URL shown in the terminal (usually http://localhost:5173 or http://0.0
 ### 📌 Roadmap / Future Plans
 
 - Add more advanced tools (vulnerability scanning, packet crafting, etc.)
-- Dark / Light mode toggle
 - Export results as PDF, JSON, or CSV
 - Desktop application using Electron
 - Enhanced mobile experience and performance
