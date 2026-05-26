@@ -26,7 +26,7 @@ If you want to run the code yourself on your computer:
 
 ```bash
 # Clone or Download zip
-git clone https://github.com/K4Links/PWNNET.git
+git clone https://github.com/K4Links/PWNNET-Toolkit.git
 
 # Unzip & enter folder
 cd PWNNET-Toolkit-main
