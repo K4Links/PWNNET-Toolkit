@@ -50,7 +50,7 @@
 git clone https://github.com/K4Links/PWNNET-Toolkit.git
 
 # 2. Navigate into the project
-cd PWNNET-Toolkit
+cd PWNNET-Toolkit-main
 
 # 3. Install dependencies
 npm install
