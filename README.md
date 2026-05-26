@@ -5,7 +5,7 @@ PWNNET is a straightforward networking and diagnostics app designed to make expl
 [![homescreen-PWNNET.png](https://i.postimg.cc/GpQF5V7m/homescreen-PWNNET.png)](https://postimg.cc/Y4vL4nB5)
 ## Core Features
 
-*   **⚡ Tools Grid:** A collection of 26 tools including Ping Sweeps, Port Scans, SSH connection testing, and Web Crawling.(Each tool provides a short description of general use or function)
+*   **⚡ Tools Grid:** A collection of 30 tools including Ping Sweeps, Port Scans, SSH connection testing, and Web Crawling.(Each tool provides a short description of general use or function)
 *  **🖥️ Command Terminal:** A built-in terminal that shows you exactly what the tools are doing in real-time.
 *   **📡 Logs:** Keeps track of the commands you've run and their outputs so you can review them later.
 *   **📚 Resources:** Includes handy reference guides for things like common ports, the OSI model, and Nmap commands.
