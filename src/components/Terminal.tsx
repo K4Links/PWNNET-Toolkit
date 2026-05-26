@@ -30,8 +30,6 @@ const CopyableLink = ({ url, label }: { url: string, label?: string }) => {
     <span className="inline-flex items-center gap-2 mt-1">
       <a 
         href={url} 
-        target="_blank" 
-        rel="noopener noreferrer" 
         onClick={(e) => e.stopPropagation()} 
         className="underline hover:text-white break-all text-[#38bdf8]"
       >
@@ -1067,7 +1065,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
                 </button>
                 <a 
                   href={`https://www.google.com/search?q=${encodeURIComponent(editableDork)}`} 
-                  target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
                   className="border flex-1 flex flex-col justify-center border-neon-green bg-neon-green/15 hover:bg-neon-green/35 text-neon-green hover:text-white px-5 py-2.5 rounded-xl text-xs font-mono uppercase tracking-widest text-center transition-all font-bold active:scale-95 shadow-md shadow-neon-green/5 cursor-pointer leading-tight"
                 >
                   LAUNCH SEARCH

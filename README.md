@@ -28,7 +28,7 @@ If you want to run the code yourself on your computer:
 # Clone or Download zip
 git clone https://github.com/K4Links/PWNNET-Toolkit.git
 
-# Unzip & enter folder
+# Unzip & Enter folder
 cd PWNNET-Toolkit-main
 
 # Install the needed packages
@@ -38,8 +38,9 @@ npm install
 npm run dev
 
 # Open the app
-o + ENTER
-# Or click the URL displayed in Terminal (e.g.http://0.0.0.0:3000)
+o + ENTER 
+# or click the URL displayed in Terminal (e.g.http://0.0.0.0:3000)
+
 ```
 ---
 ### Please 🌟 if you find this project helpful.
