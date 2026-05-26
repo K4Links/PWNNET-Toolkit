@@ -58,7 +58,9 @@ npm install
 # 4. Start the development server
 npm run dev
 ```
-Open the URL shown in the terminal (usually http://localhost:5173 or http://0.0.0.0:5173).
+To open app:
+
+Click the URL shown in the terminal (usually http://localhost:5173 or http://0.0.0.0:5173).
 
 ---
 
@@ -94,7 +96,6 @@ Bitcoin (BTC):
 ```
 bc1qqh84tnwrkm2sn2wg8r8tzt7sljee6q0km8a5wt
 ```
-
 ---
 
 ### Important
