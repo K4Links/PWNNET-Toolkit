@@ -29,7 +29,7 @@ If you want to run the code yourself on your computer:
 git clone https://github.com/K4Links/PWNNET.git
 
 # Unzip & enter folder
-cd PWNNET-main
+cd PWNNET-Toolkit-main
 
 # Install the needed packages
 npm install
