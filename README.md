@@ -1,6 +1,6 @@
 # PWNNET-Toolkit
 
-![PWNNET Banner](https://i.postimg.cc/GpQF5V7m/homescreen-PWNNET.png)
+[![PWNNET-homescreen.png](https://i.postimg.cc/fRYGFDX2/PWNNET-homescreen.png)](https://postimg.cc/fVTqS48m)
 
 **PWNNET** is a powerful, easy-to-use networking and diagnostics toolkit designed for students, security enthusiasts, and professionals. It provides **30+ practical tools** for network exploration, diagnostics, web reconnaissance, and security testing — all in a clean, responsive interface.
 
@@ -38,6 +38,7 @@
 ---
 
 ### 📱 Mobile App (Android)
+<a href="https://postimg.cc/xXYHVXnV" target="_blank"><img src="https://i.postimg.cc/xXYHVXnV/Screenshot-20260527-062339-Bazaart.jpg" alt="Screenshot-20260527-062339-Bazaart"></a> <a href="https://postimg.cc/5YcQpyP0" target="_blank"><img src="https://i.postimg.cc/5YcQpyP0/Screenshot-20260527-065254.jpg" alt="Screenshot-20260527-065254"></a>
 
 1. Download the latest **`.apk`** from the [Releases](https://github.com/K4Links/PWNNET-Toolkit/releases) page.
 2. Enable **"Install from Unknown Sources"** in your Android security settings.
