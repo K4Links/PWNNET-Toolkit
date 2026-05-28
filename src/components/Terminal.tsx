@@ -1203,10 +1203,11 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
                   type="text" 
                   value={browserUrl}
                   onChange={(e) => setBrowserUrl(e.target.value)}
-                  autoCapitalize="none"
+                  autoCapitalize="off"
                   autoCorrect="off"
                   spellCheck={false}
                   autoComplete="off"
+                  inputMode="url"
                   className="flex-1 bg-[#1a1a1a] border border-[#333] p-2 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-neon-green/50"
                 />
              </div>
@@ -1299,10 +1300,11 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
                       placeholder="e.g. yahoo.com or leave blank for global index search..."
                       value={dorkTarget}
                       onChange={(e) => setDorkTarget(cleanHostname(e.target.value))}
-                      autoCapitalize="none"
+                      autoCapitalize="off"
                       autoCorrect="off"
                       spellCheck={false}
                       autoComplete="off"
+                      inputMode="url"
                       className="w-full bg-black border border-neon-green/20 rounded-xl px-3.5 py-2.5 text-neon-green focus:outline-none focus:border-neon-green uppercase text-[11px]"
                     />
                   </div>
@@ -1376,13 +1378,15 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
                 >
                   <Copy className="mx-auto" size={14} />
                 </button>
-                <a 
-                  href={`https://www.google.com/search?q=${encodeURIComponent(editableDork)}`} 
-                  target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
+                <button
+                  onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`https://www.google.com/search?q=${encodeURIComponent(editableDork)}`, '_blank', 'noopener,noreferrer');
+                  }}
                   className="border flex-1 flex flex-col justify-center border-neon-green bg-neon-green/15 hover:bg-neon-green/35 text-neon-green hover:text-white px-5 py-2.5 rounded-xl text-xs font-mono uppercase tracking-widest text-center transition-all font-bold active:scale-95 shadow-md shadow-neon-green/5 cursor-pointer leading-tight"
                 >
                   LAUNCH SEARCH
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -1472,29 +1476,52 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
             TOOL: OTP DECODER
            ========================================= */}
         {tool.id === 'otp' && (
-          <div className="p-4 flex-1 flex flex-col max-w-4xl mx-auto w-full">
-            <div className="border border-neon-green/20 bg-[#0c0c0c]/90 p-5 flex flex-col rounded-2xl items-center justify-center">
-               <div className="w-48 h-48 rounded-full border-4 border-neon-green/20 flex flex-col items-center justify-center relative overflow-hidden mb-8 shadow-[0_0_50px_rgba(0,255,65,0.1)]">
-                 <div className="absolute bottom-0 left-0 right-0 bg-neon-green/20 transition-all duration-1000 ease-linear" style={{ height: `${(otpCountdown / 30) * 100}%` }}></div>
-                 <div className="text-5xl font-mono text-white relative z-10 tracking-widest font-black drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
-                    {otpCode.substring(0,3)} {otpCode.substring(3)}
+          <div className="p-4 flex-1 flex flex-col items-center justify-center w-full">
+             <div className="border border-neon-green/20 bg-[#0c0c0c]/90 p-6 flex flex-col rounded-2xl w-full max-w-sm shadow-lg overflow-hidden relative">
+               <div className="flex items-center gap-3 mb-6 border-b border-neon-green/20 pb-4">
+                 <div className="bg-neon-green/10 p-2 rounded-lg text-neon-green">
+                   <KeySquare size={20} />
                  </div>
-                 <div className="text-xs text-neon-green mt-2 relative z-10 font-bold tracking-widest">
-                    EXPIRES IN {otpCountdown}S
+                 <div>
+                   <h3 className="text-white font-bold tracking-wider text-sm">Authenticator</h3>
+                   <p className="text-gray-500 text-[10px] uppercase font-mono tracking-widest">Two-Factor Authentication</p>
                  </div>
                </div>
-               <input 
-                  type="text" 
-                  value={otpSecret} 
-                  onChange={(e) => setOtpSecret(e.target.value.toUpperCase())}
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  autoComplete="off"
-                  className="bg-black border border-neon-green/30 text-neon-green px-4 py-2 text-center w-full max-w-md font-mono text-xl tracking-widest outline-none focus:border-neon-green uppercase placeholder:text-gray-600"
-                  placeholder="BASE32 SECRET"
-               />
-            </div>
+
+               <div className="mb-8 relative flex flex-col items-center">
+                 <div className="text-4xl sm:text-[2.75rem] font-mono text-white tracking-[0.2em] font-black mb-6 text-center select-all cursor-text drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                   {otpCode.substring(0,3)} {otpCode.substring(3)}
+                 </div>
+                 
+                 <div className="w-full bg-black/80 rounded-full h-1.5 overflow-hidden">
+                   <div 
+                     className="h-full transition-all duration-1000 ease-linear rounded-full"
+                     style={{ 
+                        width: `${(otpCountdown / 30) * 100}%`, 
+                        backgroundColor: otpCountdown <= 5 ? '#ef4444' : '#00ff41',
+                        boxShadow: otpCountdown <= 5 ? '0 0 10px #ef4444' : '0 0 10px #00ff41'
+                     }}
+                   />
+                 </div>
+                 <div className="text-[10px] text-gray-400 font-mono tracking-widest mt-3 uppercase font-bold">
+                   Refreshes in <span className={otpCountdown <= 5 ? 'text-red-500' : 'text-neon-green'}>{otpCountdown}s</span>
+                 </div>
+               </div>
+
+               <div className="relative">
+                 <input 
+                    type="text" 
+                    value={otpSecret} 
+                    onChange={(e) => setOtpSecret(e.target.value.toUpperCase())}
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    autoComplete="off"
+                    className="w-full bg-black/80 border border-neon-green/30 text-neon-green px-4 py-3 rounded-xl font-mono text-sm tracking-widest outline-none focus:border-neon-green uppercase placeholder:text-gray-700 transition-colors text-center font-bold"
+                    placeholder="ENTER SETUP KEY"
+                 />
+               </div>
+             </div>
           </div>
         )}
 
@@ -1705,7 +1732,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
             TOOL: TERMINAL CLI SYSTEM (STANDARD COMMANDS)
            ========================================= */}
 
-        {!['device', 'ip_calc', 'otp', 'passwords', 'speed', 'dorks', 'bt', 'qr_gen'].includes(tool.id) && (
+        {!['device', 'ip_calc', 'otp', 'passwords', 'speed', 'dorks', 'bt', 'qr_gen', 'browser'].includes(tool.id) && (
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Input removed from top, moved to bottom as an inline shell! */}
             {!tool.requiresInput && (
@@ -1770,10 +1797,11 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
                        type="text"
                        value={target}
                        onChange={(e) => setTarget(e.target.value)}
-                       autoCapitalize="none"
+                       autoCapitalize="off"
                        autoCorrect="off"
                        spellCheck={false}
                        autoComplete="off"
+                       inputMode="email"
                        onKeyDown={(e) => {
                          if (e.key === 'ArrowUp') {
                            e.preventDefault();
