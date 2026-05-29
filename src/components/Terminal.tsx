@@ -197,7 +197,8 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
 
     const runBackendTool = async (endpoint: string, params: Record<string, string>) => {
       const qs = new URLSearchParams(params).toString();
-      const res = await fetch(`/api/net/${endpoint}?${qs}`);
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://pwnnet-toolkit.onrender.com';
+      const res = await fetch(`${backendUrl}/api/net/${endpoint}?${qs}`);
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || `HTTP ${res.status}`);
