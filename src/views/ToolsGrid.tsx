@@ -9,18 +9,18 @@ const getCategoryStyles = (category: string) => {
     case 'Recon':
       return {
         iconContainer: 'bg-gradient-to-br from-[#38bdf8] via-[#0284c7] to-[#082f49] shadow-[0_10px_20px_-5px_rgba(2,132,199,0.5),inset_0_2px_5px_rgba(255,255,255,0.5),inset_0_-3px_5px_rgba(0,0,0,0.4)] border border-t-[#7dd3fc]/50 border-x-[#0284c7]/30 border-b-black/80',
-        iconColor: 'text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.6)] drop-shadow-[0_0_15px_rgba(56,189,248,0.6)]',
+        iconColor: 'text-white',
       };
     case 'Web':
       return {
         iconContainer: 'bg-gradient-to-br from-[#34d399] via-[#059669] to-[#064e3b] shadow-[0_10px_20px_-5px_rgba(5,150,105,0.5),inset_0_2px_5px_rgba(255,255,255,0.5),inset_0_-3px_5px_rgba(0,0,0,0.4)] border border-t-[#6ee7b7]/50 border-x-[#059669]/30 border-b-black/80',
-        iconColor: 'text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.6)] drop-shadow-[0_0_15px_rgba(52,211,153,0.6)]',
+        iconColor: 'text-white',
       };
     case 'Utils':
     default:
       return {
         iconContainer: 'bg-gradient-to-br from-[#a78bfa] via-[#7c3aed] to-[#4c1d95] shadow-[0_10px_20px_-5px_rgba(124,58,237,0.5),inset_0_2px_5px_rgba(255,255,255,0.5),inset_0_-3px_5px_rgba(0,0,0,0.4)] border border-t-[#c4b5fd]/50 border-x-[#7c3aed]/30 border-b-black/80',
-        iconColor: 'text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.6)] drop-shadow-[0_0_15px_rgba(167,139,250,0.6)]',
+        iconColor: 'text-white',
       };
   }
 };
@@ -139,7 +139,7 @@ export function ToolsGrid({ onSelectTool }: ToolsGridProps) {
               if (tool.id === 'pwnux') {
                  styles = {
                    iconContainer: 'bg-gradient-to-br from-[#f87171] via-[#dc2626] to-[#7f1d1d] shadow-[0_10px_20px_-5px_rgba(220,38,38,0.5),inset_0_2px_5px_rgba(255,255,255,0.5),inset_0_-3px_5px_rgba(0,0,0,0.4)] border border-t-[#fca5a5]/50 border-x-[#dc2626]/30 border-b-black/80',
-                   iconColor: 'text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.6)] drop-shadow-[0_0_15px_rgba(248,113,113,0.6)]',
+                   iconColor: 'text-white',
                  };
               }
               return (
@@ -160,7 +160,7 @@ export function ToolsGrid({ onSelectTool }: ToolsGridProps) {
                     {/* Inner glowing ring */}
                     <div className="absolute inset-0 rounded-[18px] sm:rounded-[22px] border-[1.5px] border-white/10 mix-blend-overlay pointer-events-none" />
                     
-                    <Icon size={46} strokeWidth={1.2} className={`${styles.iconColor} z-10 transition-transform duration-300 group-hover:scale-110`} />
+                    <Icon size={40} strokeWidth={1.5} className={`${styles.iconColor} z-10 transition-transform duration-300 group-hover:scale-110`} />
                   </div>
 
                   {/* Title labels */}

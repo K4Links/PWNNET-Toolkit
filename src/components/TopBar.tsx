@@ -28,27 +28,27 @@ export function TopBar({ title, onAboutClick }: TopBarProps) {
 
   return (
     <div 
-      className="flex justify-between items-center px-4 bg-[#070707] border-b border-neon-green/30 shrink-0 relative select-none"
+      className="flex justify-between items-center px-2 sm:px-4 bg-[#070707] border-b border-neon-green/30 shrink-0 relative select-none gap-2"
       style={{ minHeight: 'calc(3.5rem + env(safe-area-inset-top))', paddingTop: 'env(safe-area-inset-top)' }}
     >
       {/* Visual cyber glow sub-line */}
       <div className="absolute bottom-[-1px] left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-neon-green/50 to-transparent z-20 pointer-events-none" />
 
-      <div className="text-xs font-mono tracking-widest uppercase flex items-center gap-3 relative z-0">
+      <div className="text-xs font-mono tracking-widest uppercase flex items-center gap-2 sm:gap-3 relative z-0 flex-1 min-w-0">
         <img 
           src="https://i.postimg.cc/FsFhjMXz/Screenshot-20260528-172644-Bazaart.jpg" 
           alt="PWN//NET" 
-          className="h-[48px] w-auto object-contain hover:scale-105 transition-all duration-300 opacity-90 mix-blend-screen contrast-125" 
+          className="h-[36px] sm:h-[48px] w-auto object-contain hover:scale-105 transition-all duration-300 opacity-90 mix-blend-screen contrast-125 shrink-0" 
           referrerPolicy="no-referrer" 
         />
         {title.toLowerCase() !== 'pwnnet tools' && (
-          <span className="px-2 py-0.5 rounded-md bg-neon-green/10 border border-neon-green/35 text-[10px] text-neon-green font-extrabold tracking-widest">
+          <span className="px-1.5 sm:px-2 py-0.5 rounded-md bg-neon-green/10 border border-neon-green/35 text-[9px] sm:text-[10px] text-neon-green font-extrabold tracking-widest truncate">
             {title.toUpperCase()}
           </span>
         )}
       </div>
 
-      <div className="flex items-center space-x-2 text-[10px] font-mono">
+      <div className="flex items-center gap-1.5 sm:space-x-2 text-[10px] font-mono shrink-0">
         {/* Dynamic Telemetry Badges */}
         <div className="hidden sm:flex items-center gap-1.5 text-gray-400 border border-neon-green/25 bg-black/90 px-2 py-1 rounded-xl select-none">
           <Shield size={10} className="text-neon-green" />

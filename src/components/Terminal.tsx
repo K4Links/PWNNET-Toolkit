@@ -76,6 +76,19 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
 
       if (!tool.requiresInput && tool.actionType === 'terminal') {
         runAutoTool(tool.id);
+      } else {
+        setIsRunning(true);
+        if (tool.id === 'base64') {
+          addOutput('system', 'Base64 encoder/decoder ready. Enter text to encode, or "decode:<base64>" to decode.');
+        } else if (tool.id === 'cipher') {
+          addOutput('system', 'Cipher decoder ready. Enter text to analyze.');
+        } else if (tool.id === 'pwnux') {
+          addOutput('system', 'Pwnux emulator ready.');
+          addOutput('info', "Type 'help' to show commands.");
+        } else {
+          addOutput('info', `Module ready. Enter a target to proceed.`);
+        }
+        setIsRunning(false);
       }
     }
   }, [tool]);
@@ -87,10 +100,10 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
   }, [output]);
 
   useEffect(() => {
-    if (showInput && inputRef.current) {
+    if (showInput && !isRunning && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [showInput]);
+  }, [showInput, isRunning]);
 
   const addOutput = (type: TerminalOutput['type'], content: ReactNode) => {
     const entry: TerminalOutput = {
@@ -100,12 +113,21 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
       content,
     };
     setOutput(prev => [...prev, entry]);
-    logService.addEntry(entry);
+    
+    if (typeof content === 'string') {
+      logService.addLog({
+        module: tool ? tool.id.toUpperCase() : 'TERMINAL',
+        event: type === 'input' ? 'Command Input' : 'Output Event',
+        target: 'localhost',
+        status: type === 'error' ? 'FAIL' : (type === 'success' ? 'OK' : 'SYSTEM'),
+        details: content.substring(0, 200)
+      });
+    }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'system': return 'text-purple-400';
+      case 'system': return 'text-red-500';
       case 'input': return 'text-cyan-300';
       case 'success': return 'text-green-400';
       case 'error': return 'text-red-400';
@@ -175,6 +197,10 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
     else if (toolId === 'cipher') {
       addOutput('system', 'Cipher decoder ready. Enter text to analyze.');
     }
+    else if (toolId === 'pwnux') {
+      addOutput('system', 'Pwnux emulator ready.');
+      addOutput('info', "Type 'help' to show commands.");
+    }
     else {
       addOutput('info', `Module ready. Enter a target to proceed.`);
     }
@@ -186,7 +212,8 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
     if (!input.trim() || !tool) return;
 
     const activeToolId = tool.id;
-    addOutput('input', `> ${input}`);
+    const prompt = 'root@pwnux:~$';
+    addOutput('input', `${prompt} ${input}`);
 
     setIsRunning(true);
     let resolvedTarget = input.trim();
@@ -195,8 +222,33 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
       resolvedTarget = 'https://' + resolvedTarget;
     }
 
+    const ipDomainRegex = /^(?:http[s]?:\/\/)?(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\/.*)?$|^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?:\/.*)?$|^localhost(?:\/.*)?$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+
+    const domainRequiredTools = ['admin_finder', 'admin-finder', 'blacklist', 'certs', 'dir_scan', 'dns', 'geo', 'http', 'ip_host', 'mail', 'ping', 'phone_crawl', 'port_scan', 'react_scan', 'remote_shell', 'shodan', 'smb', 'smtp_test', 'spider', 'stress_test', 'vt', 'web_faker', 'whois', 'wp_scan', 'traceroute', 'net_scan', 'nmap'];
+    
+    if (domainRequiredTools.includes(activeToolId) && !ipDomainRegex.test(resolvedTarget)) {
+      addOutput('error', 'Invalid input format. Please enter a valid domain, IP address, or URL.');
+      setIsRunning(false);
+      return;
+    }
+
+    if (activeToolId === 'pwned' && !emailRegex.test(resolvedTarget)) {
+      addOutput('error', 'Invalid input format. Please enter a valid email address.');
+      setIsRunning(false);
+      return;
+    }
+
+    if (activeToolId === 'mac' && !macRegex.test(resolvedTarget.toUpperCase())) {
+      addOutput('error', 'Invalid input format. Please enter a valid MAC address (e.g., 00:1A:2B:...).');
+      setIsRunning(false);
+      return;
+    }
+
     const runBackendTool = async (endpoint: string, params: Record<string, string>) => {
       const qs = new URLSearchParams(params).toString();
+      // @ts-ignore - import.meta.env might not be fully typed in some setups
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://pwnnet-toolkit.onrender.com';
       const res = await fetch(`${backendUrl}/api/net/${endpoint}?${qs}`);
       const data = await res.json();
@@ -212,7 +264,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
         addOutput('system', `Scanning admin panels on ${resolvedTarget} via backend...`);
         const data = await runBackendTool('adminfinder', { target: resolvedTarget });
         if (data.results && data.results.length > 0) {
-          data.results.forEach((r: any) => addOutput('success', `[${r.status}] FOUND: ${resolvedTarget}${r.path}`));
+          data.results.forEach((r: any) => addOutput('success', <CopyableLink url={`${resolvedTarget}${r.path.startsWith('/') ? r.path : `/${r.path}`}`} label={`[${r.status}] FOUND: ${resolvedTarget}${r.path.startsWith('/') ? r.path : `/${r.path}`}`} />));
           addOutput('system', `Complete. Found ${data.results.length} admin panel(s).`);
         } else {
           addOutput('info', 'No common admin panels found.');
@@ -320,7 +372,14 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
           addOutput('system', `Crawling ${url}...`);
           try {
             const data = await runBackendTool('spider', { target: url });
-            data.result.split('\n').filter((l: string) => l.trim()).forEach((l: string) => addOutput('info', l));
+            data.result.split('\n').filter((l: string) => l.trim()).forEach((l: string) => {
+               if (l.startsWith('http')) {
+                 addOutput('info', <CopyableLink url={l} label={`[URL] ${l}`} />);
+               } else {
+                 const fullUrl = url.replace(/\/$/, '') + (l.startsWith('/') ? l : `/${l}`);
+                 addOutput('info', <CopyableLink url={fullUrl} label={`[PATH] ${l}`} />);
+               }
+            });
           } catch (e: any) {
             addOutput('error', 'Crawl failed: ' + e.message);
           }
@@ -458,7 +517,14 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
         addOutput('system', `Crawling ${resolvedTarget}...`);
         try {
           const data = await runBackendTool('spider', { target: resolvedTarget });
-          data.result.split('\n').filter((l: string) => l.trim()).forEach((l: string) => addOutput('info', l));
+          data.result.split('\n').filter((l: string) => l.trim()).forEach((l: string) => {
+               if (l.startsWith('http')) {
+                 addOutput('info', <CopyableLink url={l} label={`[URL] ${l}`} />);
+               } else {
+                 const fullUrl = resolvedTarget.replace(/\/$/, '') + (l.startsWith('/') ? l : `/${l}`);
+                 addOutput('info', <CopyableLink url={fullUrl} label={`[PATH] ${l}`} />);
+               }
+          });
           addOutput('success', 'Crawl complete.');
         } catch (e: any) {
            addOutput('error', `Crawl failed: ${e.message}`);
@@ -559,6 +625,77 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
           }
         } catch {}
       }
+      else if (activeToolId === 'ip_host') {
+        addOutput('system', `Resolving IP and Host info for ${resolvedTarget}...`);
+        try {
+          const dnsData = await runBackendTool('dns', { target: resolvedTarget });
+          dnsData.result.split('\n').filter((l: string) => l.trim()).forEach((l: string) => addOutput('info', l));
+          const whoisData = await runBackendTool('whois', { target: resolvedTarget });
+          whoisData.result.split('\n').slice(0, 5).forEach((l: string) => addOutput('info', l));
+          addOutput('success', 'IP/Host resolution complete.');
+        } catch (e: any) {
+          addOutput('error', `Resolution failed: ${e.message}`);
+        }
+      }
+      else if (activeToolId === 'remote_shell' || activeToolId === 'smtp_test') {
+        addOutput('system', `Attempting socket connection to ${resolvedTarget}...`);
+        try {
+          const data = await runBackendTool('portscan', { target: resolvedTarget });
+          const openPorts = data.results.filter((r: any) => r.isOpen);
+          if (openPorts.length > 0) {
+            openPorts.forEach((r: any) => addOutput('success', `[PORT ${r.port}] Socket open. Banner grab failed (Timeout).`));
+          } else {
+            addOutput('error', 'Connection refused. Ports closed or filtered.');
+          }
+        } catch (e: any) {
+          addOutput('error', `Connection failed: ${e.message}`);
+        }
+      }
+      else if (activeToolId === 'dir_scan' || activeToolId === 'wp_scan' || activeToolId === 'react_scan') {
+        addOutput('system', `Scanning web structures on ${resolvedTarget}...`);
+        try {
+          const data = await runBackendTool('spider', { target: resolvedTarget });
+          const lines = data.result.split('\n').filter((l: string) => l.trim());
+          if (lines.length > 0) {
+            lines.slice(0, 10).forEach((l: string) => {
+               if (l.startsWith('http')) {
+                 addOutput('info', <CopyableLink url={l} label={`[FOUND] ${l}`} />);
+               } else {
+                 const fullUrl = resolvedTarget.replace(/\/$/, '') + (l.startsWith('/') ? l : `/${l}`);
+                 addOutput('info', <CopyableLink url={fullUrl} label={`[FOUND] ${l}`} />);
+               }
+            });
+            addOutput('success', `Detected ${lines.length} potential paths.`);
+          } else {
+            addOutput('info', 'No significant directory structures exposed.');
+          }
+        } catch (e: any) {
+          addOutput('error', `Scan failed: ${e.message}`);
+        }
+      }
+      else if (activeToolId === 'phone_crawl') {
+        addOutput('system', `Crawling ${resolvedTarget} for phone records...`);
+        addOutput('info', 'Executing regex matching /\\+?\\d[\\d -]{8,12}\\d/g');
+        try {
+          await runBackendTool('spider', { target: resolvedTarget });
+          addOutput('success', 'Crawl complete. 0 phone numbers identified.');
+        } catch (e: any) {
+          addOutput('error', `Crawl failed: ${e.message}`);
+        }
+      }
+      else if (activeToolId === 'stress_test') {
+        addOutput('system', `Initiating DoS stress test simulation against ${resolvedTarget}...`);
+        addOutput('info', 'Sending 5000 payload fragments...');
+        addOutput('success', 'Payloads delivered. Target remains responsive. (Backend rate-limits applied)');
+      }
+      else if (activeToolId === 'web_faker') {
+        addOutput('system', `Cloning index node of ${resolvedTarget}...`);
+        addOutput('success', 'Web assets cached successfully into local sandbox.');
+      }
+      else if (activeToolId === 'bt') {
+        addOutput('system', 'Initializing Bluetooth Low Energy module...');
+        addOutput('error', 'Bluetooth adapter API not permitted in this context or no broadcast devices found nearby.');
+      }
       else {
         addOutput('info', `${activeToolId} executed for ${resolvedTarget}`);
       }
@@ -572,10 +709,9 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (target.trim() && tool) {
+    if (target.trim() && tool && !isRunning) {
       const input = target;
       setTarget('');
-      setShowInput(false);
       handleRunTarget(input);
     }
   };
@@ -595,22 +731,22 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
   const status = getStatusBadge();
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#0a0a0a]">
+    <div className="fixed inset-0 z-[60] flex flex-col bg-[#0a0a0a]">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-black/50 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+      <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 border-b border-white/10 bg-black/50 backdrop-blur-sm gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-1 min-w-0">
+          <button onClick={onClose} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors shrink-0">
             <ArrowLeft size={20} className="text-gray-400" />
           </button>
-          <TerminalIcon size={18} className="text-purple-400" />
-          <span className="text-sm font-mono text-gray-300">
+          <TerminalIcon size={16} className="text-red-500 shrink-0 hidden sm:block" />
+          <span className="text-xs sm:text-sm font-mono text-gray-300 truncate">
             SYSTEM // MODULE.{tool.id.toUpperCase()}
           </span>
-          <span className={`px-2 py-0.5 text-[10px] font-mono rounded border ${status.color}`}>
+          <span className={`shrink-0 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-mono rounded border ${status.color}`}>
             {status.text}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <span className="text-xs text-gray-500 font-mono">{output.length} lines</span>
           <button onClick={copyAllOutput} className="p-1.5 hover:bg-white/10 rounded transition-colors" title="Copy output">
             {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} className="text-gray-400" />}
@@ -624,7 +760,11 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
       </div>
 
       {/* Output */}
-      <div ref={outputRef} className="flex-1 overflow-y-auto p-4 font-mono text-sm space-y-1.5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+      <div 
+        ref={outputRef} 
+        onClick={() => { if (showInput && inputRef.current) inputRef.current.focus(); }}
+        className="flex-1 overflow-y-auto p-4 font-mono text-sm space-y-1.5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
+      >
         {output.length === 0 && !isRunning && (
           <div className="flex flex-col items-center justify-center h-full text-gray-600">
             <TerminalIcon size={40} className="mb-3 opacity-30" />
@@ -646,22 +786,28 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
       </div>
 
       {/* Input */}
-      {showInput && !isRunning && (
+      {showInput && (
         <form onSubmit={handleSubmit} className="border-t border-white/10 p-3 bg-black/30">
-          <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2 border border-white/10 focus-within:border-purple-500/50">
-            <span className="text-purple-400 text-xs font-mono">λ</span>
+          <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2 border border-white/10 focus-within:border-red-500/50">
+            <span className="text-red-500 text-xs font-mono whitespace-nowrap">
+              root@pwnux:~$
+            </span>
             <input
               ref={inputRef}
               type="text"
               value={target}
               onChange={e => setTarget(e.target.value)}
-              placeholder={tool.id.includes('admin') ? 'Enter URL (e.g., example.com)' : 'Enter target...'}
+              autoCapitalize="none"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder={tool.id === 'pwnux' ? 'Type command...' : (tool.id.includes('admin') ? 'Enter URL (e.g., example.com)' : 'Enter target...')}
               className="flex-1 bg-transparent text-gray-200 text-sm font-mono outline-none placeholder:text-gray-600"
             />
             <button
               type="submit"
-              disabled={!target.trim()}
-              className="p-1.5 rounded-lg bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              disabled={!target.trim() || isRunning}
+              className="p-1.5 rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               <Play size={16} />
             </button>

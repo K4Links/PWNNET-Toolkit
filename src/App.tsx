@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Component, ReactNode } from 'react';
 import { Tab, ToolDef } from './types';
 import { TopBar } from './components/TopBar';
 import { BottomNav } from './components/BottomNav';
@@ -7,10 +7,24 @@ import { ToolsGrid } from './views/ToolsGrid';
 import { Logbook } from './views/Logbook';
 import { Resources } from './views/Resources';
 import { Settings } from './views/Settings';
+import { DorksPage } from './views/DorksPage';
 import { SplashScreen } from './components/SplashScreen';
 import { AboutModal } from './components/AboutModal';
 import { AnimatePresence } from 'motion/react';
 import { initKotlinLogger } from './utils/kotlinLogger';
+
+class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean, error: Error | null}> {
+  state = { hasError: false, error: null };
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return <div className="p-4 text-red-500 font-mono text-sm break-all">App Crashed: {this.state.error?.message} - {(this.state.error as any)?.stack}</div>;
+    }
+    return this.props.children;
+  }
+}
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -56,7 +70,7 @@ export default function App() {
   };
 
   return (
-    <>
+    <ErrorBoundary>
       <AnimatePresence>
         {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       </AnimatePresence>
@@ -73,7 +87,9 @@ export default function App() {
         {activeTab === 'resources' && <Resources />}
         {activeTab === 'settings' && <Settings />}
 
-        {activeTool && (
+        {activeTool && activeTool.id === 'dorks' ? (
+          <DorksPage tool={activeTool} onClose={handleCloseTool} />
+        ) : activeTool && (
           <TerminalEmulator 
             tool={activeTool} 
             onClose={handleCloseTool} 
@@ -87,6 +103,6 @@ export default function App() {
         <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} disabled={!!activeTool} />
       </div>
     </div>
-    </>
+    </ErrorBoundary>
   );
 }
