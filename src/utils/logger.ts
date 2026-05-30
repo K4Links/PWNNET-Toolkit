@@ -18,20 +18,19 @@ class Logger {
     try {
       const stored = localStorage.getItem('pwnnet_logs');
       if (stored) {
-        this.logs = JSON.parse(stored);
+        const parsedLogs: LogEntry[] = JSON.parse(stored);
+        
+        const seenIds = new Set<string>();
+        this.logs = parsedLogs.filter(log => {
+          if (seenIds.has(log.id)) {
+            log.id = `LOG-${Math.random().toString(36).substring(2, 9)}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+          }
+          seenIds.add(log.id);
+          return true;
+        });
       }
     } catch (e) {
       console.error('Failed to load logs', e);
-    }
-
-    if (this.logs.length === 0) {
-      this.addLog({
-        module: "SYS_CORE",
-        event: "Diagnostic telemetry probe registered successfully",
-        target: "localhost",
-        status: "SYSTEM",
-        details: "GATHERED BROWSER TELEMETRY: System booted, UI interface mounted successfully. Sandbox environment security audit approved."
-      });
     }
   }
 
@@ -42,7 +41,7 @@ class Logger {
   addLog(entry: Omit<LogEntry, 'id' | 'time'>) {
     const newLog: LogEntry = {
       ...entry,
-      id: `LOG-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+      id: `LOG-${Math.random().toString(36).substring(2, 9)}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
       time: new Date().toISOString().replace('T', ' ').substring(11, 19) + ' UTC',
     };
     // Prepend to array

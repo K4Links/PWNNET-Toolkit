@@ -105,22 +105,29 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
     }
   }, [showInput, isRunning]);
 
-  const addOutput = (type: TerminalOutput['type'], content: ReactNode) => {
+  const addOutput = (type: TerminalOutput['type'], content: ReactNode, rawLog?: string) => {
     const entry: TerminalOutput = {
       id: Math.random().toString(36).substring(2, 9),
       timestamp: Date.now(),
       type,
       content,
     };
+    
+    let stringContent = rawLog;
+    if (!stringContent && typeof content === 'string') {
+      stringContent = content;
+    }
+    entry.rawContent = stringContent;
+
     setOutput(prev => [...prev, entry]);
     
-    if (typeof content === 'string') {
+    if (stringContent && (type === 'input' || type === 'system')) {
       logService.addLog({
         module: tool ? tool.id.toUpperCase() : 'TERMINAL',
-        event: type === 'input' ? 'Command Input' : 'Output Event',
+        event: type === 'input' ? 'Command Input' : 'System Event',
         target: 'localhost',
-        status: type === 'error' ? 'FAIL' : (type === 'success' ? 'OK' : 'SYSTEM'),
-        details: content.substring(0, 200)
+        status: 'OK',
+        details: stringContent.substring(0, 200)
       });
     }
   };
@@ -264,7 +271,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
         addOutput('system', `Scanning admin panels on ${resolvedTarget} via backend...`);
         const data = await runBackendTool('adminfinder', { target: resolvedTarget });
         if (data.results && data.results.length > 0) {
-          data.results.forEach((r: any) => addOutput('success', <CopyableLink url={`${resolvedTarget}${r.path.startsWith('/') ? r.path : `/${r.path}`}`} label={`[${r.status}] FOUND: ${resolvedTarget}${r.path.startsWith('/') ? r.path : `/${r.path}`}`} />));
+          data.results.forEach((r: any) => addOutput('success', <CopyableLink url={`${resolvedTarget}${r.path.startsWith('/') ? r.path : `/${r.path}`}`} label={`[${r.status}] FOUND: ${resolvedTarget}${r.path.startsWith('/') ? r.path : `/${r.path}`}`} />, `[${r.status}] FOUND: ${resolvedTarget}${r.path.startsWith('/') ? r.path : `/${r.path}`}`));
           addOutput('system', `Complete. Found ${data.results.length} admin panel(s).`);
         } else {
           addOutput('info', 'No common admin panels found.');
@@ -374,10 +381,10 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
             const data = await runBackendTool('spider', { target: url });
             data.result.split('\n').filter((l: string) => l.trim()).forEach((l: string) => {
                if (l.startsWith('http')) {
-                 addOutput('info', <CopyableLink url={l} label={`[URL] ${l}`} />);
+                 addOutput('info', <CopyableLink url={l} label={`[URL] ${l}`} />, `[URL] ${l}`);
                } else {
                  const fullUrl = url.replace(/\/$/, '') + (l.startsWith('/') ? l : `/${l}`);
-                 addOutput('info', <CopyableLink url={fullUrl} label={`[PATH] ${l}`} />);
+                 addOutput('info', <CopyableLink url={fullUrl} label={`[PATH] ${l}`} />, `[PATH] ${l}`);
                }
             });
           } catch (e: any) {
@@ -395,11 +402,11 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
       // --- REGULAR TOOLS ---
       if (activeToolId === 'shodan') {
         addOutput('system', `Shodan: ${resolvedTarget}`);
-        addOutput('success', ( <CopyableLink url={`https://www.shodan.io/search?query=${encodeURIComponent(resolvedTarget)}`} label="→ Open Shodan search" /> ));
+        addOutput('success', ( <CopyableLink url={`https://www.shodan.io/search?query=${encodeURIComponent(resolvedTarget)}`} label="→ Open Shodan search" /> ), `→ Open Shodan search: https://www.shodan.io/search?query=${resolvedTarget}`);
       }
       else if (activeToolId === 'vt') {
         addOutput('system', `VirusTotal: ${resolvedTarget}`);
-        addOutput('success', ( <CopyableLink url={`https://www.virustotal.com/gui/search/${encodeURIComponent(resolvedTarget)}`} label="→ VirusTotal analysis" /> ));
+        addOutput('success', ( <CopyableLink url={`https://www.virustotal.com/gui/search/${encodeURIComponent(resolvedTarget)}`} label="→ VirusTotal analysis" /> ), `→ VirusTotal analysis: https://www.virustotal.com/gui/search/${resolvedTarget}`);
       }
       else if (activeToolId === 'dorks') {
         addOutput('system', 'Google Dorks:');
@@ -409,7 +416,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
         addOutput('info', `site:${cleanTarget} ext:sql|ext:env|ext:bak`);
         addOutput('info', `site:${cleanTarget} inurl:wp-admin`);
         addOutput('info', `site:${cleanTarget} intitle:"phpinfo"`);
-        addOutput('success', ( <CopyableLink url={`https://www.google.com/search?q=site:${cleanTarget}`} label="→ Open Google search" /> ));
+        addOutput('success', ( <CopyableLink url={`https://www.google.com/search?q=site:${cleanTarget}`} label="→ Open Google search" /> ), `→ Open Google search: https://www.google.com/search?q=site:${cleanTarget}`);
       }
       else if (activeToolId === 'pwned') {
         addOutput('system', `Checking if ${resolvedTarget} has been pwned...`);
@@ -422,10 +429,10 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
           } else {
             addOutput('success', 'No breaches found.');
           }
-          addOutput('success', ( <CopyableLink url={`https://haveibeenpwned.com/account/${encodeURIComponent(resolvedTarget)}`} label="→ View on HaveIBeenPwned" /> ));
+          addOutput('success', ( <CopyableLink url={`https://haveibeenpwned.com/account/${encodeURIComponent(resolvedTarget)}`} label="→ View on HaveIBeenPwned" /> ), `→ View on HaveIBeenPwned: https://haveibeenpwned.com/account/${resolvedTarget}`);
         } catch (e: any) {
           addOutput('error', `Check failed: ${e.message}`);
-          addOutput('success', ( <CopyableLink url={`https://haveibeenpwned.com/account/${encodeURIComponent(resolvedTarget)}`} label="→ View on HaveIBeenPwned" /> ));
+          addOutput('success', ( <CopyableLink url={`https://haveibeenpwned.com/account/${encodeURIComponent(resolvedTarget)}`} label="→ View on HaveIBeenPwned" /> ), `→ View on HaveIBeenPwned: https://haveibeenpwned.com/account/${resolvedTarget}`);
         }
       }
       else if (activeToolId === 'blacklist') {
@@ -519,10 +526,10 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
           const data = await runBackendTool('spider', { target: resolvedTarget });
           data.result.split('\n').filter((l: string) => l.trim()).forEach((l: string) => {
                if (l.startsWith('http')) {
-                 addOutput('info', <CopyableLink url={l} label={`[URL] ${l}`} />);
+                 addOutput('info', <CopyableLink url={l} label={`[URL] ${l}`} />, `[URL] ${l}`);
                } else {
                  const fullUrl = resolvedTarget.replace(/\/$/, '') + (l.startsWith('/') ? l : `/${l}`);
-                 addOutput('info', <CopyableLink url={fullUrl} label={`[PATH] ${l}`} />);
+                 addOutput('info', <CopyableLink url={fullUrl} label={`[PATH] ${l}`} />, `[PATH] ${l}`);
                }
           });
           addOutput('success', 'Crawl complete.');
@@ -571,7 +578,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
         }
       }
       else if (activeToolId === 'cve') {
-        addOutput('success', ( <CopyableLink url={`https://nvd.nist.gov/vuln/search/results?query=${encodeURIComponent(resolvedTarget)}`} label="→ NVD CVE Search" /> ));
+        addOutput('success', ( <CopyableLink url={`https://nvd.nist.gov/vuln/search/results?query=${encodeURIComponent(resolvedTarget)}`} label="→ NVD CVE Search" /> ), `→ NVD CVE Search: https://nvd.nist.gov/vuln/search/results?query=${resolvedTarget}`);
       }
       else if (activeToolId === 'base64') {
         if (input.startsWith('decode:')) {
@@ -659,10 +666,10 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
           if (lines.length > 0) {
             lines.slice(0, 10).forEach((l: string) => {
                if (l.startsWith('http')) {
-                 addOutput('info', <CopyableLink url={l} label={`[FOUND] ${l}`} />);
+                 addOutput('info', <CopyableLink url={l} label={`[FOUND] ${l}`} />, `[FOUND] ${l}`);
                } else {
                  const fullUrl = resolvedTarget.replace(/\/$/, '') + (l.startsWith('/') ? l : `/${l}`);
-                 addOutput('info', <CopyableLink url={fullUrl} label={`[FOUND] ${l}`} />);
+                 addOutput('info', <CopyableLink url={fullUrl} label={`[FOUND] ${l}`} />, `[FOUND] ${l}`);
                }
             });
             addOutput('success', `Detected ${lines.length} potential paths.`);
@@ -718,6 +725,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
 
   const copyAllOutput = () => {
     const text = output.map(o => {
+      if (o.rawContent) return o.rawContent;
       if (typeof o.content === 'string') return o.content;
       return '';
     }).filter(Boolean).join('\n');

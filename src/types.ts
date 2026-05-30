@@ -18,4 +18,5 @@ export interface TerminalOutput {
   timestamp: number;
   type: 'system' | 'input' | 'success' | 'error' | 'info';
   content: React.ReactNode;
+  rawContent?: string;
 }

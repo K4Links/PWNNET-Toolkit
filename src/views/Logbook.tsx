@@ -60,6 +60,13 @@ export function Logbook() {
               {cat}
             </button>
           ))}
+          <div className="flex-1"></div>
+          <button
+            onClick={() => logService.clearLogs()}
+            className="px-3 py-1 text-[10px] font-mono transition-colors uppercase border rounded-xl bg-red-950/30 text-red-400 border-red-900 hover:bg-red-900/50"
+          >
+            Clear Activity
+          </button>
         </div>
       </div>
 
