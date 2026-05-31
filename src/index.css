@@ -2,8 +2,8 @@
 @import "tailwindcss";
 
 :root {
-  --neon-green-val: #00FF41;
-  --neon-green-dim-val: rgba(0, 255, 65, 0.2);
+  --neon-green-val: #00ffcc;
+  --neon-green-dim-val: rgba(0, 255, 204, 0.2);
   --obsidian-val: #050510;
   --dark-gray-val: #111116;
   --border-gray-val: #3f3f46;
@@ -64,7 +64,7 @@
 }
 
 .glow-shadow {
-  box-shadow: 0px 4px 20px rgba(0, 255, 65, 0.15);
+  box-shadow: 0px 4px 20px rgba(0, 255, 204, 0.15);
 }
 
 .glass-panel {
@@ -259,12 +259,12 @@
 }
 
 @keyframes glitch-anim {
-  0% { transform: translate(0) skew(0); filter: drop-shadow(0 0 #00FF41); }
-  20% { transform: translate(-2px, 1px) skew(-1deg); filter: drop-shadow(-2px 0 #00FF41) hue-rotate(90deg); }
-  40% { transform: translate(1px, -1px) skew(1deg); filter: drop-shadow(2px 0 #38bdf8) hue-rotate(-90deg); }
-  60% { transform: translate(-1px, 2px) skew(-2deg); filter: drop-shadow(1px 2px #00FF41); }
-  80% { transform: translate(2px, -2px) skew(2deg); filter: drop-shadow(-1px -1px #38bdf8); }
-  100% { transform: translate(0) skew(0); filter: drop-shadow(0 0 #00FF41); }
+  0% { transform: translate(0) skew(0); filter: drop-shadow(0 0 #00ffcc); }
+  20% { transform: translate(-1.2px, 0.6px) skew(-0.6deg); filter: drop-shadow(-1.2px 0 #00ffcc) hue-rotate(90deg); }
+  40% { transform: translate(0.6px, -0.6px) skew(0.6deg); filter: drop-shadow(1.2px 0 #38bdf8) hue-rotate(-90deg); }
+  60% { transform: translate(-0.6px, 1.2px) skew(-1.2deg); filter: drop-shadow(0.6px 1.2px #00ffcc); }
+  80% { transform: translate(1.2px, -1.2px) skew(1.2deg); filter: drop-shadow(-0.6px -0.6px #38bdf8); }
+  100% { transform: translate(0) skew(0); filter: drop-shadow(0 0 #00ffcc); }
 }
 
 /* Base static overlay layer */

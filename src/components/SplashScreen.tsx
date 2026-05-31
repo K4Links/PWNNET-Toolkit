@@ -5,7 +5,6 @@ import { motion } from 'motion/react';
 export function SplashScreen({ onComplete }: { onComplete: () => void }) {
   const [currentText, setCurrentText] = useState("");
   const [progress, setProgress] = useState(0);
-  const [isGlitching, setIsGlitching] = useState(true);
 
   useEffect(() => {
     const startupSequence = [
@@ -26,9 +25,6 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
       if (currentLog < startupSequence.length) {
         setCurrentText(startupSequence[currentLog]);
         setProgress((currentLog / (startupSequence.length - 1)) * 100);
-        if (currentLog === startupSequence.length - 1) {
-          setIsGlitching(false);
-        }
       } else {
         clearInterval(interval);
         setTimeout(onComplete, 1600); // 400ms from current tick + 1600ms = 2s total visible non-glitch
@@ -55,10 +51,10 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
 
       <div className="z-10 flex flex-col items-center w-full max-w-md px-6">
         <motion.div 
-          className="relative mb-6 w-full max-w-[260px]"
+          className="relative mb-6 w-full max-w-[312px]"
           initial={{ scale: 0.95, opacity: 0, filter: "blur(8px)" }}
           animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
         >
           <motion.div 
             className="absolute inset-[10%] -z-10 bg-black rounded-full blur-[15px]" 
@@ -66,9 +62,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
           <motion.div 
             className="absolute -inset-[60%] -z-20 origin-center"
             style={{
-               background: isGlitching 
-                 ? 'radial-gradient(circle, transparent 25%, rgba(0, 255, 65, 0.15) 50%, transparent 70%)'
-                 : 'radial-gradient(circle, transparent 25%, rgba(0, 255, 65, 0.35) 50%, transparent 70%)'
+               background: 'radial-gradient(circle, transparent 25%, rgba(0, 255, 204, 0.12) 40%, transparent 60%)'
             }}
             animate={{ 
               opacity: [0.6, 1, 0.6],
@@ -77,10 +71,32 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           />
           <div 
-            className={`w-full aspect-square relative z-10 drop-shadow-2xl transition-all duration-300 contrast-125 brightness-150 ${isGlitching ? 'glitch-logo' : ''}`}
+            className="w-full aspect-square relative z-10 drop-shadow-xl contrast-110 brightness-110 transition-all duration-300"
             style={{ backgroundImage: 'url(https://i.postimg.cc/FsFhjMXz/Screenshot-20260528-172644-Bazaart.jpg)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}
           >
           </div>
+        </motion.div>
+
+        {/* EKG / Heartbeat Monitor */}
+        <motion.div 
+          className="w-full max-w-[340px] h-16 relative z-20 mx-auto -mt-24 mb-4 opacity-80"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.8 }}
+          transition={{ delay: 0.4, duration: 1 }}
+        >
+          <svg viewBox="0 0 340 40" className="w-full h-full stroke-neon-green overflow-visible" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 4px rgba(0,255,204,0.6))' }}>
+            <motion.path 
+              d="M 0 20 L 40 20 L 45 10 L 50 30 L 55 20 L 100 20 L 110 -15 L 120 45 L 125 20 L 170 20 L 175 15 L 180 25 L 185 20 L 230 20 L 235 5 L 240 35 L 245 20 L 290 20 L 295 -5 L 305 35 L 310 20 L 340 20"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: progress / 100 }}
+              transition={{ ease: "easeOut", duration: 0.4 }}
+            />
+            {/* Dim background line */}
+            <path 
+              d="M 0 20 L 40 20 L 45 10 L 50 30 L 55 20 L 100 20 L 110 -15 L 120 45 L 125 20 L 170 20 L 175 15 L 180 25 L 185 20 L 230 20 L 235 5 L 240 35 L 245 20 L 290 20 L 295 -5 L 305 35 L 310 20 L 340 20"
+              className="stroke-neon-green/10"
+            />
+          </svg>
         </motion.div>
 
         <motion.div 
@@ -92,22 +108,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
           <p className="text-gray-400 font-medium text-sm tracking-[0.3em] uppercase glow-text text-shadow-sm">Advanced Network Exploitation Toolkit</p>
         </motion.div>
 
-        {/* Minimal Loading Bar & Text */}
         <div className="w-full max-w-[240px] flex flex-col items-center">
-          <motion.div 
-            className="w-full h-[1px] bg-white/10 overflow-hidden mb-4 relative"
-            initial={{ opacity: 0, scaleX: 0 }}
-            animate={{ opacity: 1, scaleX: 1 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-          >
-            <motion.div 
-              className="absolute left-0 top-0 h-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"
-              initial={{ width: "0%" }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-            />
-          </motion.div>
-          
           <motion.div 
             key={currentText}
             className="text-[9px] text-gray-500 font-medium tracking-widest uppercase h-4"

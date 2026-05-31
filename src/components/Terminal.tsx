@@ -47,22 +47,26 @@ const CopyableLink = ({ url, label }: { url: string, label?: string }) => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
   return (
-    <span className="inline-flex items-center gap-2 text-blue-400 underline underline-offset-2 decoration-dotted decoration-blue-500/40 text-xs">
+    <span className="inline-flex items-center gap-2 text-blue-400 underline underline-offset-2 decoration-dotted decoration-blue-500/40 text-[10px] sm:text-xs">
       {label || url}
       <button onClick={handleCopy} className="p-1 rounded hover:bg-white/10 transition-colors" title="Copy link">
         {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
       </button>
-      <button onClick={openExternal} className="p-1 rounded hover:bg-white/10 transition-colors" title="Open in browser">
+      <a href={url} target="_blank" rel="noopener noreferrer" className="p-1 rounded hover:bg-white/10 transition-colors" title="Open in browser">
         ↗
-      </button>
+      </a>
     </span>
   );
 };
 
+import { useInputHistory } from '../utils/useInputHistory';
+
 export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
   const [output, setOutput] = useState<TerminalOutput[]>([]);
   const [isRunning, setIsRunning] = useState(false);
-  const [target, setTarget] = useState('');
+  
+  const { value: target, setValue: setTarget, handleKeyDown, saveToHistory } = useInputHistory();
+
   const [showInput, setShowInput] = useState(false);
   const [copied, setCopied] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -74,7 +78,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
       setShowInput(tool.requiresInput || false);
       setTarget('');
 
-      if (!tool.requiresInput && tool.actionType === 'terminal') {
+      if (!tool.requiresInput) {
         runAutoTool(tool.id);
       } else {
         setIsRunning(true);
@@ -134,8 +138,8 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'system': return 'text-red-500';
-      case 'input': return 'text-cyan-300';
+      case 'system': return 'text-neon-green font-bold';
+      case 'input': return 'text-neon-green/80';
       case 'success': return 'text-green-400';
       case 'error': return 'text-red-400';
       case 'info': return 'text-gray-200';
@@ -144,10 +148,10 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
   };
 
   const getStatusBadge = () => {
-    if (isRunning) return { text: 'RUNNING', color: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' };
-    if (output.some(o => o.type === 'error')) return { text: 'ERROR', color: 'bg-red-500/20 text-red-300 border-red-500/30' };
-    if (output.length > 1) return { text: 'COMPLETE', color: 'bg-green-500/20 text-green-300 border-green-500/30' };
-    return { text: 'IDLE', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' };
+    if (isRunning) return { text: 'RUNNING', color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/50' };
+    if (output.some(o => o.type === 'error')) return { text: 'ERROR', color: 'bg-red-500/10 text-red-500 border-red-500/50' };
+    if (output.length > 0) return { text: 'ACTIVE', color: 'bg-neon-green/10 text-neon-green border-neon-green/50' };
+    return { text: 'READY', color: 'bg-neon-green/5 text-neon-green/80 border-neon-green/30' };
   };
 
   const runAutoTool = async (toolId: string) => {
@@ -208,6 +212,18 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
       addOutput('system', 'Pwnux emulator ready.');
       addOutput('info', "Type 'help' to show commands.");
     }
+    else if (toolId === 'passwords') {
+      addOutput('system', 'Generating cryptographically secure password...');
+      const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=';
+      let pwd = '';
+      const array = new Uint32Array(24);
+      crypto.getRandomValues(array);
+      for (let i = 0; i < 24; i++) {
+        pwd += charset[array[i] % charset.length];
+      }
+      addOutput('success', pwd);
+      addOutput('info', 'Length: 24 | Entropy: ~157 bits');
+    }
     else {
       addOutput('info', `Module ready. Enter a target to proceed.`);
     }
@@ -233,7 +249,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
 
-    const domainRequiredTools = ['admin_finder', 'admin-finder', 'blacklist', 'certs', 'dir_scan', 'dns', 'geo', 'http', 'ip_host', 'mail', 'ping', 'phone_crawl', 'port_scan', 'react_scan', 'remote_shell', 'shodan', 'smb', 'smtp_test', 'spider', 'stress_test', 'vt', 'web_faker', 'whois', 'wp_scan', 'traceroute', 'net_scan', 'nmap'];
+    const domainRequiredTools = ['admin_finder', 'admin-finder', 'blacklist', 'certs', 'dns', 'geo', 'http', 'ip_host', 'mail', 'ping', 'port_scan', 'shodan', 'spider', 'vt', 'whois', 'traceroute', 'net_scan'];
     
     if (domainRequiredTools.includes(activeToolId) && !ipDomainRegex.test(resolvedTarget)) {
       addOutput('error', 'Invalid input format. Please enter a valid domain, IP address, or URL.');
@@ -419,21 +435,8 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
         addOutput('success', ( <CopyableLink url={`https://www.google.com/search?q=site:${cleanTarget}`} label="→ Open Google search" /> ), `→ Open Google search: https://www.google.com/search?q=site:${cleanTarget}`);
       }
       else if (activeToolId === 'pwned') {
-        addOutput('system', `Checking if ${resolvedTarget} has been pwned...`);
-        try {
-          const data = await runBackendTool('pwned', { email: resolvedTarget });
-          if (data.breaches && data.breaches.length > 0) {
-            addOutput('error', `Found ${data.breaches.length} breaches!`);
-            data.breaches.slice(0, 5).forEach((b: any) => addOutput('info', `- ${b.Name} (${b.BreachDate})`));
-            if (data.breaches.length > 5) addOutput('info', '... and more');
-          } else {
-            addOutput('success', 'No breaches found.');
-          }
-          addOutput('success', ( <CopyableLink url={`https://haveibeenpwned.com/account/${encodeURIComponent(resolvedTarget)}`} label="→ View on HaveIBeenPwned" /> ), `→ View on HaveIBeenPwned: https://haveibeenpwned.com/account/${resolvedTarget}`);
-        } catch (e: any) {
-          addOutput('error', `Check failed: ${e.message}`);
-          addOutput('success', ( <CopyableLink url={`https://haveibeenpwned.com/account/${encodeURIComponent(resolvedTarget)}`} label="→ View on HaveIBeenPwned" /> ), `→ View on HaveIBeenPwned: https://haveibeenpwned.com/account/${resolvedTarget}`);
-        }
+        addOutput('system', `Have I Been Pwned check for: ${resolvedTarget}`);
+        addOutput('success', ( <CopyableLink url={`https://haveibeenpwned.com/account/${encodeURIComponent(resolvedTarget)}`} label="→ View on HaveIBeenPwned" /> ), `→ View on HaveIBeenPwned: https://haveibeenpwned.com/account/${resolvedTarget}`);
       }
       else if (activeToolId === 'blacklist') {
          addOutput('system', `Checking blacklists for ${resolvedTarget}...`);
@@ -447,7 +450,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
            addOutput('error', `Blacklist check failed: ${e.message}`);
          }
       }
-      else if (activeToolId === 'nmap' || activeToolId === 'port_scan') {
+      else if (activeToolId === 'port_scan') {
         addOutput('system', `Port scan on ${resolvedTarget}...`);
         try {
           const data = await runBackendTool('portscan', { target: resolvedTarget });
@@ -580,6 +583,53 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
       else if (activeToolId === 'cve') {
         addOutput('success', ( <CopyableLink url={`https://nvd.nist.gov/vuln/search/results?query=${encodeURIComponent(resolvedTarget)}`} label="→ NVD CVE Search" /> ), `→ NVD CVE Search: https://nvd.nist.gov/vuln/search/results?query=${resolvedTarget}`);
       }
+      else if (activeToolId === 'dir_scan') {
+        addOutput('system', `Directory scan: ${resolvedTarget}...`);
+        try {
+           const data = await runBackendTool('dirscan', { target: resolvedTarget });
+           data.result.split('\n').filter((l: string) => l.trim()).forEach((l: string) => addOutput('info', l));
+           addOutput('success', 'Scan complete.');
+        } catch (e: any) { addOutput('error', e.message); }
+      }
+      else if (activeToolId === 'wp_scan') {
+        addOutput('system', `WP Scan: ${resolvedTarget}...`);
+        try {
+           const data = await runBackendTool('wpscan', { target: resolvedTarget });
+           data.result.split('\n').filter((l: string) => l.trim()).forEach((l: string) => addOutput('info', l));
+           addOutput('success', 'Scan complete.');
+        } catch (e: any) { addOutput('error', e.message); }
+      }
+      else if (activeToolId === 'react_scan') {
+        addOutput('system', `React/Next Scan: ${resolvedTarget}...`);
+        try {
+           const data = await runBackendTool('reactscan', { target: resolvedTarget });
+           data.result.split('\n').filter((l: string) => l.trim()).forEach((l: string) => addOutput('info', l));
+           addOutput('success', 'Scan complete.');
+        } catch (e: any) { addOutput('error', e.message); }
+      }
+      else if (activeToolId === 'dos') {
+        addOutput('system', `Stress test: ${resolvedTarget}...`);
+        try {
+           const data = await runBackendTool('dos', { target: resolvedTarget });
+           addOutput('info', data.result);
+           addOutput('success', 'Test complete.');
+        } catch (e: any) { addOutput('error', e.message); }
+      }
+      else if (activeToolId === 'web_faker') {
+        addOutput('system', `Generating fake identity...`);
+        try {
+           const data = await runBackendTool('webfaker', {});
+           data.result.split('\n').filter((l: string) => l.trim()).forEach((l: string) => addOutput('info', l));
+        } catch (e: any) { addOutput('error', e.message); }
+      }
+      else if (activeToolId === 'shell') {
+        addOutput('system', `Connecting to standard ports on ${resolvedTarget}...`);
+        try {
+           const data = await runBackendTool('shell', { target: resolvedTarget });
+           data.result.split('\n').filter((l: string) => l.trim()).forEach((l: string) => addOutput('info', l));
+           addOutput('success', 'Banner grab complete.');
+        } catch (e: any) { addOutput('error', e.message); }
+      }
       else if (activeToolId === 'base64') {
         if (input.startsWith('decode:')) {
           try {
@@ -635,6 +685,10 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
       else if (activeToolId === 'ip_host') {
         addOutput('system', `Resolving IP and Host info for ${resolvedTarget}...`);
         try {
+          const geoData = await runBackendTool('geoip', { target: resolvedTarget }).catch(() => null);
+          if (geoData && geoData.country) {
+             addOutput('success', `Location: ${geoData.city}, ${geoData.region}, ${geoData.country} (${geoData.org})`);
+          }
           const dnsData = await runBackendTool('dns', { target: resolvedTarget });
           dnsData.result.split('\n').filter((l: string) => l.trim()).forEach((l: string) => addOutput('info', l));
           const whoisData = await runBackendTool('whois', { target: resolvedTarget });
@@ -644,64 +698,58 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
           addOutput('error', `Resolution failed: ${e.message}`);
         }
       }
-      else if (activeToolId === 'remote_shell' || activeToolId === 'smtp_test') {
-        addOutput('system', `Attempting socket connection to ${resolvedTarget}...`);
+      else if (activeToolId === 'qr_gen') {
+        addOutput('system', `Generating QR Code for: ${resolvedTarget}`);
+        addOutput('success', (
+          <div className="bg-white p-4 rounded inline-block mt-2">
+            <QRCodeSVG value={resolvedTarget} size={150} />
+          </div>
+        ));
+      }
+      else if (activeToolId === 'ip_calc') {
+        addOutput('system', `Calculating subnet for: ${resolvedTarget}`);
         try {
-          const data = await runBackendTool('portscan', { target: resolvedTarget });
-          const openPorts = data.results.filter((r: any) => r.isOpen);
-          if (openPorts.length > 0) {
-            openPorts.forEach((r: any) => addOutput('success', `[PORT ${r.port}] Socket open. Banner grab failed (Timeout).`));
-          } else {
-            addOutput('error', 'Connection refused. Ports closed or filtered.');
-          }
-        } catch (e: any) {
-          addOutput('error', `Connection failed: ${e.message}`);
+          const [ip, cidr] = resolvedTarget.includes('/') ? resolvedTarget.split('/') : [resolvedTarget, '24'];
+          const parts = ip.split('.').map(Number);
+          if (parts.length !== 4 || parts.some(isNaN) || Number(cidr) < 0 || Number(cidr) > 32) throw new Error();
+          
+          let mask = ~(2 ** (32 - Number(cidr)) - 1);
+          let net = (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3];
+          let networkNode = new Uint32Array([net & mask])[0];
+          let broadcastNode = new Uint32Array([net | ~mask])[0];
+
+          const toIp = (num: number) => [(num >>> 24) & 255, (num >>> 16) & 255, (num >>> 8) & 255, num & 255].join('.');
+          
+          addOutput('info', `IP: ${ip} / ${cidr}`);
+          addOutput('success', `Network: ${toIp(networkNode)}`);
+          addOutput('info', `Broadcast: ${toIp(broadcastNode)}`);
+          addOutput('info', `Hosts: ${(2 ** (32 - Number(cidr))) - 2 > 0 ? (2 ** (32 - Number(cidr))) - 2 : 0}`);
+        } catch(e) {
+          addOutput('error', 'Invalid IP/CIDR. Usage: 192.168.1.1/24');
         }
       }
-      else if (activeToolId === 'dir_scan' || activeToolId === 'wp_scan' || activeToolId === 'react_scan') {
-        addOutput('system', `Scanning web structures on ${resolvedTarget}...`);
+      else if (activeToolId === 'otp') {
+        addOutput('system', `Analyzing OTP secret: ${resolvedTarget}`);
         try {
-          const data = await runBackendTool('spider', { target: resolvedTarget });
-          const lines = data.result.split('\n').filter((l: string) => l.trim());
-          if (lines.length > 0) {
-            lines.slice(0, 10).forEach((l: string) => {
-               if (l.startsWith('http')) {
-                 addOutput('info', <CopyableLink url={l} label={`[FOUND] ${l}`} />, `[FOUND] ${l}`);
-               } else {
-                 const fullUrl = resolvedTarget.replace(/\/$/, '') + (l.startsWith('/') ? l : `/${l}`);
-                 addOutput('info', <CopyableLink url={fullUrl} label={`[FOUND] ${l}`} />, `[FOUND] ${l}`);
-               }
-            });
-            addOutput('success', `Detected ${lines.length} potential paths.`);
-          } else {
-            addOutput('info', 'No significant directory structures exposed.');
-          }
-        } catch (e: any) {
-          addOutput('error', `Scan failed: ${e.message}`);
+          let totp = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(resolvedTarget) });
+          addOutput('success', `Valid Base32 Secret.`);
+          addOutput('info', `Current Token: ${totp.generate()}`);
+          addOutput('info', `URI: ${totp.toString()}`);
+        } catch {
+          addOutput('error', 'Invalid Base32 secret string.');
         }
       }
-      else if (activeToolId === 'phone_crawl') {
-        addOutput('system', `Crawling ${resolvedTarget} for phone records...`);
-        addOutput('info', 'Executing regex matching /\\+?\\d[\\d -]{8,12}\\d/g');
-        try {
-          await runBackendTool('spider', { target: resolvedTarget });
-          addOutput('success', 'Crawl complete. 0 phone numbers identified.');
-        } catch (e: any) {
-          addOutput('error', `Crawl failed: ${e.message}`);
-        }
+      else if (activeToolId === 'notes') {
+        addOutput('system', `Saved note to temporary memory buffer.`);
+        addOutput('success', `Note: ${resolvedTarget}`);
       }
-      else if (activeToolId === 'stress_test') {
-        addOutput('system', `Initiating DoS stress test simulation against ${resolvedTarget}...`);
-        addOutput('info', 'Sending 5000 payload fragments...');
-        addOutput('success', 'Payloads delivered. Target remains responsive. (Backend rate-limits applied)');
-      }
-      else if (activeToolId === 'web_faker') {
-        addOutput('system', `Cloning index node of ${resolvedTarget}...`);
-        addOutput('success', 'Web assets cached successfully into local sandbox.');
-      }
-      else if (activeToolId === 'bt') {
-        addOutput('system', 'Initializing Bluetooth Low Energy module...');
-        addOutput('error', 'Bluetooth adapter API not permitted in this context or no broadcast devices found nearby.');
+      else if (activeToolId === 'browser') {
+        addOutput('system', `Attempting to frame ${resolvedTarget}...`);
+        addOutput('info', (
+          <div className="w-full h-64 mt-2 border border-white/20 rounded">
+            <iframe src={resolvedTarget.startsWith('http') ? resolvedTarget : 'https://' + resolvedTarget} className="w-full h-full bg-white" title="browser" sandbox="allow-scripts allow-same-origin" />
+          </div>
+        ));
       }
       else {
         addOutput('info', `${activeToolId} executed for ${resolvedTarget}`);
@@ -718,6 +766,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
     e.preventDefault();
     if (target.trim() && tool && !isRunning) {
       const input = target;
+      saveToHistory(input);
       setTarget('');
       handleRunTarget(input);
     }
@@ -737,91 +786,148 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
   if (!tool) return null;
 
   const status = getStatusBadge();
+  const ToolIcon = tool.icon;
+
+  const getPlaceholder = (id: string, requiresInput?: boolean) => {
+    if (!requiresInput) return 'no input parameters needed';
+    switch (id) {
+      case 'pwnux': return 'type command...';
+      case 'http': case 'spider':
+        return 'enter url (e.g. https://example.com)';
+      case 'port_scan':
+        return 'enter ip address or domain';
+      case 'mac': return 'enter mac address';
+      case 'certs': case 'mail': case 'admin_finder': case 'dns':
+        return 'enter domain (e.g. example.com)';
+      case 'pwned': return 'enter email address (e.g. example@gmail.com)';
+      case 'vt': case 'ip_host': case 'blacklist': case 'whois': case 'ping':
+        return 'enter domain or ip address';
+      case 'net_scan': return 'enter network subnet or ip (e.g. 192.168.1.0/24)';
+      case 'cve': return 'enter cve id (e.g. cve-2021-44228)';
+      default: return 'enter target...';
+    }
+  };
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col bg-[#0a0a0a]">
+    <div className="absolute inset-0 z-50 flex flex-col bg-[#0a0a0a]">
       {/* Header */}
-      <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 border-b border-white/10 bg-black/50 backdrop-blur-sm gap-2">
-        <div className="flex items-center gap-1.5 sm:gap-3 flex-1 min-w-0">
-          <button onClick={onClose} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors shrink-0">
-            <ArrowLeft size={20} className="text-gray-400" />
-          </button>
-          <TerminalIcon size={16} className="text-red-500 shrink-0 hidden sm:block" />
-          <span className="text-xs sm:text-sm font-mono text-gray-300 truncate">
-            SYSTEM // MODULE.{tool.id.toUpperCase()}
+      <div className="flex items-center justify-between p-3 sm:p-4 border-b border-neon-green/20 bg-[#0a0a0a] shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+          <span className="text-neon-green font-bold tracking-widest text-sm sm:text-base uppercase flex items-center gap-2 truncate">
+            &gt;_ SYSTEM // MODULE.{tool.id.toUpperCase()}
           </span>
-          <span className={`shrink-0 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-mono rounded border ${status.color}`}>
+          <span className={`shrink-0 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-mono rounded border uppercase tracking-widest ${status.color}`}>
             {status.text}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          <span className="text-xs text-gray-500 font-mono">{output.length} lines</span>
-          <button onClick={copyAllOutput} className="p-1.5 hover:bg-white/10 rounded transition-colors" title="Copy output">
-            {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} className="text-gray-400" />}
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="text-xs text-gray-500 font-mono hidden sm:inline-block">{output.length} lines</span>
+            <button onClick={copyAllOutput} className="p-1.5 text-neon-green hover:bg-neon-green/10 rounded transition-colors" title="Copy output">
+              {copied ? <Check size={16} /> : <Copy size={16} />}
+            </button>
+          </div>
+          <button 
+            onClick={onClose}
+            className="flex items-center gap-1.5 text-neon-green border border-neon-green/50 rounded-full px-3 sm:px-4 py-1.5 text-xs font-bold hover:bg-neon-green/10 transition-colors uppercase tracking-widest"
+          >
+            <ArrowLeft size={14} />
+            BACK
           </button>
         </div>
       </div>
 
       {/* Description */}
-      <div className="px-4 py-2 bg-white/[0.02] border-b border-white/5">
-        <p className="text-xs text-gray-500 font-mono">{tool.description}</p>
+      <div className="flex gap-3 p-4 sm:p-5 bg-neon-green/[0.02] border-b border-neon-green/10 shrink-0">
+        <ToolIcon size={16} className="text-neon-green mt-0.5 shrink-0" />
+        <p className="text-gray-400 font-mono text-xs sm:text-[13px] leading-relaxed max-w-4xl">
+          {tool.description}
+        </p>
       </div>
 
-      {/* Output */}
-      <div 
-        ref={outputRef} 
-        onClick={() => { if (showInput && inputRef.current) inputRef.current.focus(); }}
-        className="flex-1 overflow-y-auto p-4 font-mono text-sm space-y-1.5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
-      >
-        {output.length === 0 && !isRunning && (
-          <div className="flex flex-col items-center justify-center h-full text-gray-600">
-            <TerminalIcon size={40} className="mb-3 opacity-30" />
-            <p className="text-sm">Ready. {tool.requiresInput ? 'Enter a target below.' : 'Initializing...'}</p>
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-24 scrollbar-thin scrollbar-thumb-neon-green/20 scrollbar-track-transparent">
+        <div className="max-w-3xl mx-auto border border-neon-green/20 rounded-[24px] p-5 sm:p-8 bg-[#0a0a0a] shadow-[0_0_20px_rgba(57,255,20,0.03)] focus-within:shadow-[0_0_20px_rgba(57,255,20,0.06)] transition-shadow flex flex-col gap-8">
+          
+          <div className="flex items-center gap-3">
+            <ToolIcon size={24} className="text-neon-green" />
+            <h2 className="text-white font-bold tracking-widest text-sm sm:text-lg uppercase">
+              {tool.name} MODULE
+            </h2>
           </div>
-        )}
-        {output.map(entry => (
-          <div key={entry.id} className={`${getTypeColor(entry.type)} leading-relaxed break-words whitespace-pre-wrap`}>
-            <span className="text-[10px] opacity-40 mr-2 shrink-0">[{new Date(entry.timestamp).toLocaleTimeString()}]</span>
-            <span className="align-middle">{entry.content}</span>
-          </div>
-        ))}
-        {isRunning && (
-          <div className="flex items-center gap-2 text-yellow-400/70 mt-2">
-            <RefreshCw size={14} className="animate-spin shrink-0" />
-            <span className="text-xs">Processing...</span>
-          </div>
-        )}
-      </div>
 
-      {/* Input */}
-      {showInput && (
-        <form onSubmit={handleSubmit} className="border-t border-white/10 p-3 bg-black/30">
-          <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2 border border-white/10 focus-within:border-red-500/50">
-            <span className="text-red-500 text-xs font-mono whitespace-nowrap">
-              root@pwnux:~$
-            </span>
-            <input
-              ref={inputRef}
-              type="text"
-              value={target}
-              onChange={e => setTarget(e.target.value)}
-              autoCapitalize="none"
-              autoComplete="off"
-              autoCorrect="off"
-              spellCheck={false}
-              placeholder={tool.id === 'pwnux' ? 'Type command...' : (tool.id.includes('admin') ? 'Enter URL (e.g., example.com)' : 'Enter target...')}
-              className="flex-1 bg-transparent text-gray-200 text-sm font-mono outline-none placeholder:text-gray-600"
-            />
-            <button
-              type="submit"
-              disabled={!target.trim() || isRunning}
-              className="p-1.5 rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          {showInput && (
+            <form onSubmit={handleSubmit} className="space-y-4 block">
+              <label className="text-gray-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                {tool.id === 'pwnux' ? 'SYS EXECUTOR' : 'TARGET/PAYLOAD DEFINITION'}
+              </label>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={target}
+                  onChange={e => setTarget(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  autoCapitalize="none"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  placeholder={getPlaceholder(tool.id, tool.requiresInput)}
+                  className="flex-1 bg-[#050505] border border-neon-green/20 focus:border-neon-green rounded-xl p-4 sm:p-4 text-neon-green font-mono text-xs sm:text-[13px] outline-none placeholder:text-neon-green/30 transition-all"
+                />
+                <button
+                  type="submit"
+                  disabled={!target.trim() || isRunning}
+                  className="bg-neon-green/[0.05] hover:bg-neon-green text-neon-green hover:text-black border border-neon-green transition-all font-bold text-xs uppercase tracking-widest rounded-xl p-4 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neon-green active:scale-[0.98] sm:min-w-[140px]"
+                >
+                  {isRunning ? 'EXECUTING...' : 'EXECUTE'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Terminal Output */}
+          <div className="border border-neon-green/30 rounded-2xl p-4 sm:p-5 bg-[#050505] relative flex flex-col min-h-[300px] h-[50vh] max-h-[600px]">
+            <div className="flex items-center gap-3 mb-4 shrink-0 border-b border-neon-green/20 pb-4">
+              <span className="text-gray-400 text-[10px] font-bold tracking-widest uppercase flex items-center gap-2">
+                <TerminalIcon size={14} className="text-neon-green"/>
+                TERMINAL OUTPUT
+              </span>
+              <span className="bg-neon-green/10 text-neon-green border border-neon-green/30 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ml-auto">
+                READ-ONLY
+              </span>
+            </div>
+            
+            <div 
+              ref={outputRef} 
+              className="flex-1 overflow-y-auto font-mono text-xs sm:text-[13px] space-y-2 scrollbar-thin scrollbar-thumb-neon-green/20 scrollbar-track-transparent pr-2"
             >
-              <Play size={16} />
-            </button>
+              {output.length === 0 && !isRunning && (
+                <div className="flex flex-col items-center justify-center h-full text-gray-600 opacity-50 py-10">
+                  <TerminalIcon size={32} className="mb-4 opacity-30 text-neon-green" />
+                  <p className="font-mono uppercase tracking-widest text-[10px] text-center mb-2">Ready.<br/>{tool.requiresInput ? 'AWAITING INPUT PARAMETERS.' : 'INITIALIZING...'}</p>
+                  {tool.requiresInput && (
+                    <p className="font-mono text-[9px] text-neon-green/50">Example: {tool.id === 'port_scan' ? '192.168.1.1' : tool.id.includes('mail') ? 'example.com' : 'target.com'}</p>
+                  )}
+                </div>
+              )}
+              {output.map(entry => (
+                <div key={entry.id} className={`${getTypeColor(entry.type)} break-words whitespace-pre-wrap`}>
+                  <span className="text-[10px] opacity-40 mr-2 shrink-0">[{new Date(entry.timestamp).toLocaleTimeString()}]</span>
+                  <span className="align-middle">{entry.content}</span>
+                </div>
+              ))}
+              {isRunning && (
+                <div className="flex items-center gap-2 text-neon-green mt-4 animate-pulse">
+                  <RefreshCw size={12} className="animate-spin shrink-0" />
+                  <span className="text-[10px] uppercase font-bold tracking-widest">Processing request...</span>
+                </div>
+              )}
+            </div>
           </div>
-        </form>
-      )}
+          
+        </div>
+      </div>
     </div>
   );
 }

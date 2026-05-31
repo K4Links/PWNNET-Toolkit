@@ -7,7 +7,7 @@ export interface ToolDef {
   name: string;
   icon: any; // Lucide icon
   category: string;
-  actionType: 'terminal' | 'modal' | 'external';
+  actionType: 'terminal' | 'modal' | 'external' | 'custom';
   requiresInput?: boolean;
   defaultPort?: string;
   description?: string;

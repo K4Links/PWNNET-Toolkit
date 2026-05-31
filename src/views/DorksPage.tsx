@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Search, Globe, ChevronDown, ChevronRight, Copy } from 'lucide-react';
 import { ToolDef } from '../types';
+import { useInputHistory } from '../utils/useInputHistory';
 
 interface DorksPageProps {
   tool: ToolDef;
@@ -142,13 +143,67 @@ const PRESETS = [
       { name: 'GCP CREDENTIALS', query: 'ext:json "type": "service_account"' },
       { name: 'SSH AUTHORIZED KEYS', query: 'inurl:"authorized_keys"' }
     ]
+  },
+  {
+    category: 'AI & LLM SECRETS',
+    dorks: [
+      { name: 'OPENAI API KEYS', query: 'ext:env | ext:txt "sk-ant" | "sk-proj" | "sk-"' },
+      { name: 'ANTHROPIC KEYS', query: 'ext:env "ANTHROPIC_API_KEY"' },
+      { name: 'HUGGINGFACE TOKENS', query: 'ext:json | ext:env "hf_"' },
+      { name: 'PINECONE DB', query: 'ext:env "PINECONE_API_KEY"' }
+    ]
+  },
+  {
+    category: 'MODERN WEB FRAMEWORKS',
+    dorks: [
+      { name: 'NEXT.JS EXPOSED MAPS', query: 'ext:js.map inurl:_next/static' },
+      { name: 'NUXT APP DATA', query: 'intext:"__NUXT__"' },
+      { name: 'VITE DEV SERVER', query: 'inurl:"@vite/client"' },
+      { name: 'REACT PROFILER', query: 'inurl:?react_perf' }
+    ]
+  },
+  {
+    category: 'CI/CD & AUTOMATION',
+    dorks: [
+      { name: 'GITHUB ACTIONS', query: 'path:.github/workflows ext:yml "password"' },
+      { name: 'GITLAB CI RUNNERS', query: 'ext:yml inurl:.gitlab-ci.yml "token"' },
+      { name: 'TRAVIS CI SECRETS', query: 'inurl:.travis.yml "secure:"' },
+      { name: 'CIRCLE CI', query: 'inurl:.circleci/config.yml "aws_access_key"' }
+    ]
+  },
+  {
+    category: 'MESSAGING & COMMS',
+    dorks: [
+      { name: 'SLACK WEBHOOKS', query: 'ext:py | ext:env "hooks.slack.com/services/"' },
+      { name: 'DISCORD WEBHOOKS', query: 'intext:"discord.com/api/webhooks/" EXCLUDE:"github.com"' },
+      { name: 'TELEGRAM BOTS', query: 'ext:json | ext:env "api.telegram.org/bot"' },
+      { name: 'MS TEAMS WEBHOOKS', query: 'inurl:"webhookb.webhook.office.com"' }
+    ]
+  },
+  {
+    category: 'MODERN DATABASES',
+    dorks: [
+      { name: 'MONGODB URIs', query: 'ext:env "mongodb+srv://"' },
+      { name: 'SUPABASE SECRETS', query: 'ext:env "SUPABASE_KEY" | "SUPABASE_URL"' },
+      { name: 'FIREBASE CONFIGS', query: 'ext:json | ext:env "firebaseio.com" "apiKey"' },
+      { name: 'REDIS URLS', query: 'ext:env "redis://:password"' }
+    ]
+  },
+  {
+    category: 'CLOUD NATIVE',
+    dorks: [
+      { name: 'KUBERNETES SECRETS', query: 'ext:yaml "kind: Secret" "data:"' },
+      { name: 'KUBECONFIG LEAK', query: 'inurl:".kube/config" intitle:"index of"' },
+      { name: 'TERRAFORM STATE', query: 'ext:tfstate | ext:tfvars' },
+      { name: 'DOCKER COMPOSE SECRETS', query: 'ext:yml "docker-compose" "MYSQL_ROOT_PASSWORD"' }
+    ]
   }
 ];
 
 export function DorksPage({ tool, onClose }: DorksPageProps) {
-  const [targetDomain, setTargetDomain] = useState('');
-  const [activeCategory, setActiveCategory] = useState<string | null>('OPEN DIRECTORY LISTINGS');
-  const [compilingString, setCompilingString] = useState('INTITLE:"INDEX OF" ADMIN');
+  const { value: targetDomain, setValue: setTargetDomain, handleKeyDown: handleDomainKeyDown, saveToHistory: saveDomainHistory } = useInputHistory('');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [compilingString, setCompilingString] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleSelectDork = (query: string) => {
@@ -165,15 +220,9 @@ export function DorksPage({ tool, onClose }: DorksPageProps) {
     return true;
   };
 
-  const handleLaunchSearch = () => {
-    if (!validateTarget()) return;
-    const sitePrefix = targetDomain.trim() ? `site:${targetDomain.replace(/https?:\/\//, '')} ` : '';
-    const fullSearch = `${sitePrefix}${compilingString}`;
-    window.open(`https://www.google.com/search?q=${encodeURIComponent(fullSearch)}`, '_blank', 'noopener,noreferrer');
-  };
-
   const handleCopy = () => {
     if (!validateTarget()) return;
+    saveDomainHistory();
     const sitePrefix = targetDomain.trim() ? `site:${targetDomain.replace(/https?:\/\//, '')} ` : '';
     const fullSearch = `${sitePrefix}${compilingString}`;
     navigator.clipboard.writeText(fullSearch);
@@ -237,7 +286,8 @@ export function DorksPage({ tool, onClose }: DorksPageProps) {
                 type="text"
                 value={targetDomain}
                 onChange={(e) => { setTargetDomain(e.target.value); setErrorMsg(''); }}
-                placeholder="E.G. YAHOO.COM OR LEAVE BLANK FOR GLOB"
+                onKeyDown={handleDomainKeyDown}
+                placeholder="enter domain (e.g. example.com) or leave blank"
                 className={`w-full bg-[#050505] border ${errorMsg ? 'border-red-500/50 focus:border-red-500' : 'border-neon-green/20 focus:border-neon-green'} rounded-xl p-4 sm:p-4 text-neon-green font-mono text-xs sm:text-[13px] outline-none placeholder:text-neon-green/30 transition-all uppercase`}
                 autoCapitalize="none"
                 autoComplete="off"
@@ -310,13 +360,19 @@ export function DorksPage({ tool, onClose }: DorksPageProps) {
                 COPY DORK
               </button>
 
-              <button
-                onClick={handleLaunchSearch}
-                disabled={!compilingString}
-                className="flex-[2] bg-neon-green/[0.05] hover:bg-neon-green text-neon-green hover:text-black border border-neon-green transition-all font-bold text-xs uppercase tracking-widest rounded-xl p-4 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neon-green active:scale-[0.98]"
+              <a
+                href={`https://www.google.com/search?q=${encodeURIComponent((targetDomain.trim() ? `site:${targetDomain.replace(/^https?:\/\//, '')} ` : '') + compilingString)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  if (!validateTarget() || !compilingString) {
+                    e.preventDefault();
+                  }
+                }}
+                className={`flex-[2] bg-neon-green/[0.05] hover:bg-neon-green text-neon-green hover:text-black border border-neon-green transition-all font-bold text-xs uppercase tracking-widest rounded-xl p-4 flex items-center justify-center active:scale-[0.98] ${!compilingString ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
               >
                 LAUNCH SEARCH
-              </button>
+              </a>
             </div>
 
           </div>

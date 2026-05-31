@@ -8,6 +8,7 @@ import { Logbook } from './views/Logbook';
 import { Resources } from './views/Resources';
 import { Settings } from './views/Settings';
 import { DorksPage } from './views/DorksPage';
+import { CustomToolRouter } from './views/CustomTools';
 import { SplashScreen } from './components/SplashScreen';
 import { AboutModal } from './components/AboutModal';
 import { AnimatePresence } from 'motion/react';
@@ -89,6 +90,8 @@ export default function App() {
 
         {activeTool && activeTool.id === 'dorks' ? (
           <DorksPage tool={activeTool} onClose={handleCloseTool} />
+        ) : activeTool && ['qr_gen', 'otp', 'passwords', 'speed', 'base64', 'cipher', 'security', 'notes', 'ip_calc', 'hackbar', 'device', 'nfc', 'cve', 'phone_crawl'].includes(activeTool.id) ? (
+          <CustomToolRouter tool={activeTool} onClose={handleCloseTool} />
         ) : activeTool && (
           <TerminalEmulator 
             tool={activeTool} 
