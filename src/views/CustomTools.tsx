@@ -5,6 +5,7 @@ import { useInputHistory } from '../utils/useInputHistory';
 import { QRCodeSVG } from 'qrcode.react';
 import Barcode from 'react-barcode';
 import * as OTPAuth from 'otpauth';
+import { getBackendUrl } from '../config';
 
 // -----------------------------
 // Barcode / QR Tool
@@ -782,7 +783,7 @@ export function HackbarTool({ tool, onClose }: { tool: ToolDef, onClose: () => v
     
     try {
       const qs = new URLSearchParams({ target: url, method: 'GET' }).toString();
-      const backendUrl = (import.meta as any).env.VITE_BACKEND_URL || '';
+      const backendUrl = getBackendUrl();
       const res = await fetch(`${backendUrl}/api/net/hackbar?${qs}`);
       const data = await res.json();
       setResponse(data);
@@ -1038,7 +1039,7 @@ export function CveTool({ tool, onClose }: { tool: ToolDef, onClose: () => void 
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const backendUrl = (import.meta as any).env.VITE_BACKEND_URL || '';
+    const backendUrl = getBackendUrl();
     fetch(`${backendUrl}/api/net/cve/recent`)
       .then(r => r.json())
       .then(d => {
@@ -1058,7 +1059,7 @@ export function CveTool({ tool, onClose }: { tool: ToolDef, onClose: () => void 
     setError('');
     setData(null);
     try {
-      const backendUrl = (import.meta as any).env.VITE_BACKEND_URL || '';
+      const backendUrl = getBackendUrl();
       const res = await fetch(`${backendUrl}/api/net/cve/search?id=${encodeURIComponent(targetId)}`);
       if (!res.ok) throw new Error('CVE not found or API error');
       const json = await res.json();
@@ -1246,7 +1247,7 @@ export function PhoneCrawlTool({ tool, onClose }: { tool: ToolDef, onClose: () =
     setPhones([]);
     try {
       const qs = new URLSearchParams({ target: url }).toString();
-      const backendUrl = (import.meta as any).env.VITE_BACKEND_URL || '';
+      const backendUrl = getBackendUrl();
       const res = await fetch(`${backendUrl}/api/net/phonecrawl?${qs}`);
       const data = await res.json();
       
@@ -1323,7 +1324,7 @@ export function DnsTool({ tool, onClose }: { tool: ToolDef, onClose: () => void 
     setOutput('');
     try {
       const qs = new URLSearchParams({ target, server, reverse: reverse.toString() }).toString();
-      const backendUrl = (import.meta as any).env.VITE_BACKEND_URL || '';
+      const backendUrl = getBackendUrl();
       const res = await fetch(`${backendUrl}/api/net/dns?${qs}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Request failed');

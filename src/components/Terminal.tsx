@@ -10,6 +10,7 @@ import {
   Search, DoorOpen, Server, Bug, FileText
 } from 'lucide-react';
 import { ToolDef, TerminalOutput } from '../types';
+import { getBackendUrl } from '../config';
 
 interface TerminalEmulatorProps {
   tool: ToolDef | null;
@@ -275,7 +276,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
     const runBackendTool = async (endpoint: string, params: Record<string, string>) => {
       const qs = new URLSearchParams(params).toString();
       // @ts-ignore - import.meta.env might not be fully typed in some setups
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+      const backendUrl = getBackendUrl();
       const res = await fetch(`${backendUrl}/api/net/${endpoint}?${qs}`);
       const data = await res.json();
       if (!res.ok) {
@@ -646,7 +647,7 @@ export function TerminalEmulator({ tool, onClose }: TerminalEmulatorProps) {
         addOutput('system', `Generating fake identity...`);
         try {
            const id = parseInt(resolvedTarget) || Math.floor(Math.random() * 10000) + 1;
-           const backendUrl = (import.meta as any).env.VITE_BACKEND_URL || '';
+           const backendUrl = getBackendUrl();
            const res = await fetch(`${backendUrl}/api/net/webfaker?id=${id}`);
            if (!res.ok) throw new Error('Data generation failed');
            const data = await res.json();
